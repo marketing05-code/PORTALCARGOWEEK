@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Cargoweek · Clasifica la Carga</title>
+<style>
+:root{
+  --navy:#082342; --navy2:#082342; --light:#082342; --white:#09223f;
+  --muted:#c7d4e3; --line:#355675; --good:#8fe6ad; --bad:#ffaaa5; --blue:#2b8cff; --blue2:#1266c3;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#082342;color:#fff;font-family:Arial,Helvetica,sans-serif}
+.wrap{width:min(1000px,100%);margin:auto;padding:16px}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:14px}
+.brand{font-weight:950;letter-spacing:.15em;color:#fff}.tag{color:#9ecbff;font-weight:900}
+h1{font-size:clamp(2rem,7vw,4rem);margin:20px 0 8px;line-height:.95}
+.sub{color:#c7d4e3;line-height:1.5}
+.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}
+.phase{border:1px solid var(--line);border-radius:15px;padding:11px;text-align:center;background:#09223f}
+.phase.active{border:2px solid #4b9cff;box-shadow:0 0 0 2px #4b9cff18} .phase.locked{opacity:.42}
+.phase b,.phase small{display:block}.phase small{margin-top:4px;color:#c7d4e3;font-size:10px}
+.card{background:#09223f;border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 18px 45px #0005}
+.form{display:grid;grid-template-columns:1fr 1fr auto;gap:10px}
+input,select,button{font:inherit}
+input,select{padding:13px;border-radius:12px;border:1px solid #355675;background:#071d37;color:#fff;width:100%}
+button{border:0;border-radius:12px;padding:13px 17px;font-weight:900;cursor:pointer}
+.primary{background:linear-gradient(90deg,#1266c3,#2b8cff);color:#fff}
+.hidden{display:none!important}
+.hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;margin-bottom:12px}
+.pill{background:#082342;border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-weight:900;color:#ffffff}
+
+.factory{border:1px solid var(--line);border-radius:20px;overflow:hidden;background:linear-gradient(#0d2a4f 0 54%,#132b44 54% 100%)}
+.belt-stage{height:225px;position:relative;overflow:hidden}#itemsLane{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:visible}#itemsLane .item{pointer-events:auto}
+.belt{position:absolute;left:0;right:0;bottom:30px;height:82px;background:repeating-linear-gradient(90deg,#6f7c89 0 54px,#8d99a5 54px 62px,#6f7c89 62px 116px);border-top:7px solid #4e5b68;border-bottom:7px solid #4e5b68;animation:beltMove .75s linear infinite}
+@keyframes beltMove{from{background-position:0 0}to{background-position:-116px 0}}
+.rollers{position:absolute;left:0;right:0;bottom:2px;height:32px;background:radial-gradient(circle at 16px 16px,#5b6875 0 10px,#d8dee4 11px 14px,transparent 15px) 0 0/50px 32px repeat-x;animation:rollersMove .75s linear infinite}
+@keyframes rollersMove{from{background-position:0 0}to{background-position:-50px 0}}
+.machine{position:absolute;right:0;top:18px;width:70px;height:118px;background:#1266c3;border-radius:14px 0 0 14px;box-shadow:-8px 0 0 #355675}
+.machine:before{content:"SALIDA";position:absolute;left:10px;top:12px;color:#fff;font-size:10px;font-weight:900;letter-spacing:.1em}
+.machine:after{content:"";position:absolute;left:13px;right:13px;bottom:20px;height:48px;background:#082342;border:2px solid #7faee5;border-radius:6px}
+.item{position:absolute;left:calc(100% - 78px);bottom:78px;width:118px;text-align:center;z-index:5;cursor:grab;user-select:none;touch-action:none;filter:drop-shadow(0 10px 6px #0002)}
+.item.moving{animation:travel var(--travel,7s) linear forwards}.item.selected{outline:3px solid #4b9cff;outline-offset:5px;border-radius:12px;filter:drop-shadow(0 0 10px #4b9cff)}
+.item.sorted{display:none!important}
+@keyframes travel{from{transform:translateX(20px)}to{transform:translateX(calc(-1 * var(--distance)))}}
+.emoji{font-size:64px;line-height:1}
+.item b{display:block;margin-top:3px;background:#06172fee;color:#fff;padding:6px 8px;border-radius:10px;font-size:13px}
+.instruction{text-align:center;color:#c7d4e3;margin:12px 0 8px;font-size:13px}
+.zones{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.zone{min-height:82px;background:#082342;color:#fff;border:2px dashed #58708b;border-radius:15px;padding:10px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:14px}
+.zone:hover,.zone.over{border-color:#4b9cff;background:#0d315f}
+.zone span{font-size:25px;display:block}
+.feedback{min-height:28px;text-align:center;font-weight:900;margin-top:10px}.good{color:var(--good)}.bad{color:var(--bad)}
+.end{text-align:center}.big{font-size:clamp(2.3rem,9vw,5rem);font-weight:950;color:#4b9cff}
+.note{color:#c7d4e3;font-size:12px;text-align:center;margin-top:12px}
+@media(max-width:650px){
+  .wrap{padding:9px}.top{font-size:12px}.form{grid-template-columns:1fr}.phases{gap:4px}.phase{padding:8px 3px}
+  .phase b{font-size:11px}.zones{grid-template-columns:1fr 1fr}.zone{min-height:75px;padding:6px;font-size:12px}
+  .belt-stage{height:190px}.emoji{font-size:54px}.item{width:105px;bottom:74px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div class="brand">CARGO</div><div class="tag">CARGOWEEK · RETO LOGÍSTICO</div></div>
+  <h1>CLASIFICA<br>LA CARGA 📦</h1>
+  <div class="sub" id="subtitle"></div>
+  <div class="phases" id="phases"></div>
+
+  <section class="card" id="start">
+    <div class="form">
+      <input id="name" placeholder="Nombre completo" maxlength="60">
+      <select id="branch">
+        <option value="">Selecciona tu sucursal</option>
+        <option>Estado de México</option><option>Buenos Aires</option><option>Victoria</option>
+        <option>Nuevo Repueblo</option><option>Leamington</option><option>Tampico</option>
+        <option>Ontario</option><option>Detroit</option><option>San Antonio</option><option>Laredo</option>
+      </select>
+      <button class="primary" id="startBtn">COMENZAR</button>
+    </div>
+    <div class="feedback" id="startMsg"></div>
+    <div class="note">Tienes 1 oportunidad por participante en cada fase.</div>
+  </section>
+
+  <section class="card hidden" id="game">
+    <div class="hud">
+      <div class="pill">📦 <span id="progress">1/10</span></div>
+      <div class="pill">⭐ <span id="score">0</span> PTS</div>
+      <div class="pill">⏱ <span id="timer">01:30</span></div>
+    </div>
+
+    <div class="factory">
+      <div class="belt-stage">
+        <div class="machine"></div>
+        <div class="belt"></div>
+        <div class="rollers"></div>
+        <div id="itemsLane" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="instruction">¡Atención! Salen varias cargas seguidas. Toca una carga y luego su categoría, o arrástrala directamente.</div>
+    <div class="zones" id="zones"></div>
+    <div class="feedback" id="feedback"></div>
+  </section>
+
+  <section class="card end hidden" id="end">
+    <div>OPERACIÓN COMPLETADA</div>
+    <h2 id="endTitle">¡Carga clasificada! 🚚</h2>
+    <div class="big" id="finalScore"></div>
+    <p id="summary"></p>
+    <button class="primary" onclick="location.reload()">FINALIZAR</button>
+  </section>
+</div>
+
+<script>
+(()=>{
+const FASE_ACTIVA = 1;
+const SHEETS_URL="https://script.google.com/macros/s/AKfycbzFzv6BMs-nZy21hwji_zn9JpljVqfF7uvXc1a_HoV-MUwhHs2KU7ZiZg2bcvYn_22xXQ/exec";
+const MAX_ATTEMPTS=1;
+
+const FASES={
+1:{time:75,travel:7.0,spawn:1900,maxOnBelt:3,desc:"FASE 1 · Ritmo rápido: varias cargas salen seguidas.",cats:[["GENERAL","📦"],["REFRIGERADA","❄️"],["FRÁGIL","🥂"],["URGENTE","⚡"]],items:[
+["👕","Ropa","GENERAL"],["🥛","Lácteos","REFRIGERADA"],["🍷","Botellas de vidrio","FRÁGIL"],["💊","Medicamento urgente","URGENTE"],["📚","Libros","GENERAL"],["🧊","Producto congelado","REFRIGERADA"],["🪞","Espejo","FRÁGIL"],["📄","Documentos express","URGENTE"],["👟","Calzado","GENERAL"],["🎂","Pastel refrigerado","REFRIGERADA"],["🖨️","Impresora","FRÁGIL"],["🥗","Alimentos frescos","REFRIGERADA"]]},
+2:{time:65,travel:5.7,spawn:1350,maxOnBelt:4,desc:"FASE 2 · Más categorías, más cargas simultáneas y menos tiempo.",cats:[["GENERAL","📦"],["REFRIGERADA","❄️"],["FRÁGIL","🥂"],["URGENTE","⚡"],["PESADA","🏗️"],["PELIGROSA","⚠️"]],items:[
+["🛋️","Muebles","GENERAL"],["🥩","Carne refrigerada","REFRIGERADA"],["🖥️","Monitor","FRÁGIL"],["📑","Refacciones urgentes","URGENTE"],["⚙️","Maquinaria industrial","PESADA"],["🧪","Químicos regulados","PELIGROSA"],["🥬","Producto fresco","REFRIGERADA"],["🏺","Cerámica","FRÁGIL"],["🧱","Material de construcción","PESADA"],["📦","Papelería","GENERAL"],["🔋","Baterías reguladas","PELIGROSA"],["🏥","Insumo médico urgente","URGENTE"],["🪟","Panel de vidrio","FRÁGIL"],["🛢️","Material regulado","PELIGROSA"]]},
+3:{time:55,travel:4.5,spawn:900,maxOnBelt:5,desc:"FASE 3 · Nivel experto: flujo continuo y decisiones inmediatas.",cats:[["GENERAL","📦"],["CADENA FRÍA","❄️"],["FRÁGIL","🥂"],["PRIORITARIA","⚡"],["SOBREDIMENSIONADA","🏗️"],["REGULADA","⚠️"]],items:[
+["🧬","Muestras biológicas","CADENA FRÍA"],["🛰️","Equipo tecnológico delicado","FRÁGIL"],["🏭","Pieza industrial de gran tamaño","SOBREDIMENSIONADA"],["🧯","Material con manejo especial","REGULADA"],["🩺","Insumos hospitalarios críticos","PRIORITARIA"],["🍓","Alimentos perecederos","CADENA FRÍA"],["🖼️","Obra de arte","FRÁGIL"],["🛠️","Herramientas estándar","GENERAL"],["🏗️","Componente estructural","SOBREDIMENSIONADA"],["📋","Documentación de entrega crítica","PRIORITARIA"],["⚗️","Sustancia regulada","REGULADA"],["👚","Textiles","GENERAL"],["💉","Vacunas","CADENA FRÍA"],["🧪","Reactivos de laboratorio","REGULADA"],["🗄️","Archivero metálico","SOBREDIMENSIONADA"]]}
+};
+
+const C=FASES[FASE_ACTIVA], $=s=>document.querySelector(s);
+let list=[], nextIndex=0, processed=0, score=0, errors=0, missed=0, left=C.time, timer=null, spawnTimer=null;
+let activeItems=new Map(), selectedId=null, uid=0, finished=false;
+
+$("#subtitle").textContent=C.desc;
+$("#phases").innerHTML=[1,2,3].map(n=>`<div class="phase ${n===FASE_ACTIVA?"active":"locked"}"><div>${n===FASE_ACTIVA?"🔓":"🔒"}</div><b>FASE ${n}</b><small>${n===FASE_ACTIVA?"DISPONIBLE":"BLOQUEADA"}</small></div>`).join("");
+
+function norm(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim()}
+function attemptKey(){return "clasificaCargaFase"+FASE_ACTIVA+"::"+norm($("#name").value)+"::"+norm($("#branch").value)}
+function attempts(){return +(localStorage.getItem(attemptKey())||0)}
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function fmt(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+
+$("#startBtn").onclick=()=>{
+  if(!$("#name").value.trim()||!$("#branch").value){
+    $("#startMsg").textContent="Escribe tu nombre y selecciona tu sucursal."; return;
+  }
+  if(attempts()>=MAX_ATTEMPTS){
+    $("#startMsg").textContent="Ya utilizaste tu única oportunidad para esta fase."; return;
+  }
+  localStorage.setItem(attemptKey(),"1");
+  list=shuffle(C.items);
+  $("#start").classList.add("hidden");
+  $("#game").classList.remove("hidden");
+  $("#timer").textContent=fmt(left);
+  timer=setInterval(()=>{left--;$("#timer").textContent=fmt(left);if(left<=0)finish(true)},1000);
+  setupZones();
+  spawnOne();
+  spawnTimer=setInterval(spawnOne,C.spawn);
+};
+
+function setupZones(){
+  $("#zones").innerHTML=C.cats.map(c=>`<button class="zone" data-cat="${c[0]}"><div><span>${c[1]}</span>${c[0]}</div></button>`).join("");
+  document.querySelectorAll(".zone").forEach(z=>{
+    z.onclick=()=>classifySelected(z.dataset.cat);
+    z.ondragover=e=>{e.preventDefault();z.classList.add("over")};
+    z.ondragleave=()=>z.classList.remove("over");
+    z.ondrop=e=>{
+      e.preventDefault();z.classList.remove("over");
+      const id=e.dataTransfer.getData("text/plain");
+      if(id) classifyItem(id,z.dataset.cat);
+    };
+  });
+}
+
+function updateProgress(){
+  $("#progress").textContent=processed+"/"+list.length;
+}
+
+function spawnOne(){
+  if(finished) return;
+  if(nextIndex>=list.length){
+    if(activeItems.size===0) finish(false);
+    return;
+  }
+  if(activeItems.size>=C.maxOnBelt) return;
+
+  const data=list[nextIndex++];
+  const id="cargo_"+(++uid);
+  const el=document.createElement("div");
+  el.className="item";
+  el.id=id;
+  el.draggable=true;
+  el.style.setProperty("--travel",C.travel+"s");
+  el.style.setProperty("--distance",(($("#itemsLane").clientWidth||900)+280)+"px");
+
+  // Alterna ligeramente la altura para que dos cargas cercanas sigan siendo distinguibles.
+  const lane=(uid%2);
+  el.style.top=lane ? "30px" : "8px";
+  el.innerHTML=`<div class="emoji">${data[0]}</div><b>${data[1]}</b>`;
+
+  el.addEventListener("click",()=>selectItem(id));
+  el.addEventListener("dragstart",e=>{
+    selectItem(id);
+    e.dataTransfer.setData("text/plain",id);
+  });
+  el.addEventListener("animationend",()=>missItem(id),{once:true});
+
+  activeItems.set(id,{el,data});
+  $("#itemsLane").appendChild(el);
+
+  void el.offsetWidth;
+  requestAnimationFrame(()=>el.classList.add("moving"));
+  updateProgress();
+}
+
+function selectItem(id){
+  if(finished || !activeItems.has(id)) return;
+  selectedId=id;
+  activeItems.forEach((obj,key)=>obj.el.classList.toggle("selected",key===id));
+  $("#feedback").textContent="Carga seleccionada: "+activeItems.get(id).data[1];
+  $("#feedback").className="feedback";
+}
+
+function classifySelected(cat){
+  if(!selectedId || !activeItems.has(selectedId)){
+    $("#feedback").textContent="Primero toca una de las cargas que va en la banda.";
+    $("#feedback").className="feedback bad";
+    return;
+  }
+  classifyItem(selectedId,cat);
+}
+
+function classifyItem(id,cat){
+  const obj=activeItems.get(id);
+  if(!obj || finished) return;
+
+  // Se elimina del DOM inmediatamente, así jamás reaparece en la salida.
+  obj.el.remove();
+  activeItems.delete(id);
+  if(selectedId===id) selectedId=null;
+
+  const correct=obj.data[2], f=$("#feedback");
+  if(cat===correct){
+    score+=100;
+    f.textContent="✓ "+obj.data[1]+" → "+correct+" · +100";
+    f.className="feedback good";
+  }else{
+    errors++; score=Math.max(0,score-25);
+    f.textContent="✕ "+obj.data[1]+" era "+correct+" · -25";
+    f.className="feedback bad";
+  }
+
+  processed++;
+  $("#score").textContent=score;
+  updateProgress();
+
+  // Rellena la banda rápido para mantener siempre varias cargas en juego.
+  setTimeout(spawnOne,140);
+  if(nextIndex>=list.length && activeItems.size===0) finish(false);
+}
+
+function missItem(id){
+  const obj=activeItems.get(id);
+  if(!obj || finished) return;
+
+  obj.el.remove();
+  activeItems.delete(id);
+  if(selectedId===id) selectedId=null;
+
+  missed++; errors++; processed++; score=Math.max(0,score-25);
+  $("#score").textContent=score;
+  $("#feedback").textContent="⚠️ "+obj.data[1]+" salió sin clasificar · -25";
+  $("#feedback").className="feedback bad";
+  updateProgress();
+
+  setTimeout(spawnOne,120);
+  if(nextIndex>=list.length && activeItems.size===0) finish(false);
+}
+
+function finish(timeout){
+  if(!timer && !$("#end").classList.contains("hidden")) return;
+  if(finished) return;
+  finished=true;
+  clearInterval(timer); timer=null;
+  clearInterval(spawnTimer); spawnTimer=null;
+  activeItems.forEach(obj=>obj.el.remove());
+  activeItems.clear();
+  $("#game").classList.add("hidden");
+  $("#end").classList.remove("hidden");
+  $("#endTitle").textContent=timeout?"¡Tiempo terminado! ⏱":"¡Carga clasificada! 🚚";
+  $("#finalScore").textContent=score+" PTS";
+  $("#summary").textContent=processed+"/"+list.length+" cargas procesadas · "+errors+" errores · "+missed+" sin clasificar · Fase "+FASE_ACTIVA;
+
+  const datos={
+    nombre:$("#name").value.trim(),
+    sucursal:$("#branch").value,
+    puntos:score,
+    errores:errors,
+    cargas:processed,
+    fase:"Fase "+FASE_ACTIVA,
+    juego:"Clasifica la Carga"
+  };
+  fetch(SHEETS_URL,{
+    method:"POST",
+    mode:"no-cors",
+    headers:{"Content-Type":"text/plain"},
+    body:JSON.stringify(datos)
+  }).catch(()=>{});
+}
+})();
+</script>
+</body>
+</html>
