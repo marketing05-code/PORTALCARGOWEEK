@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ruta Cargo | Cargoweek</title>
+<style>
+  :root{
+    --navy:#071827;
+    --navy2:#0b2236;
+    --orange:#f28c28;
+    --orange2:#d97820;
+    --white:#ffffff;
+    --muted:#9fb0bf;
+    --line:rgba(255,255,255,.10);
+  }
+  *{box-sizing:border-box}
+  html,body{
+    margin:0;
+    padding:0;
+    background:linear-gradient(180deg,#06131f,#0b2236);
+    color:#fff;
+    font-family:Arial,Helvetica,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    overscroll-behavior:none;
+  }
+  body{
+    min-height:100vh;
+    padding:14px;
+  }
+  .app{
+    width:min(760px,100%);
+    margin:0 auto;
+  }
+  .top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  h1{
+    margin:0;
+    font-size:clamp(26px,7vw,42px);
+    letter-spacing:.4px;
+  }
+  .subtitle{
+    margin-top:5px;
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.35;
+  }
+  .stats{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .stat{
+    padding:9px 12px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:rgba(255,255,255,.045);
+    font-size:14px;
+    min-width:90px;
+    text-align:center;
+  }
+  .phase-selector{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin:12px 0;
+  }
+  .phase-card{
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:11px 8px;
+    text-align:center;
+    background:rgba(255,255,255,.035);
+  }
+  .phase-card.active{
+    border:2px solid var(--orange);
+    background:rgba(242,140,40,.09);
+  }
+  .phase-card.locked{opacity:.45}
+  .phase-card .lock{font-size:20px}
+  .phase-card b{display:block;margin-top:4px}
+  .phase-card small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+  .game-card{
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.035);
+    padding:8px;
+    border-radius:18px;
+  }
+  canvas{
+    display:block;
+    width:100%;
+    aspect-ratio:1/1;
+    border-radius:12px;
+    background:var(--navy);
+    touch-action:none;
+  }
+  .message{
+    text-align:center;
+    min-height:24px;
+    margin:12px 0 8px;
+    font-weight:700;
+    font-size:14px;
+  }
+  .actions{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  button{
+    border:0;
+    border-radius:12px;
+    min-height:48px;
+    padding:0 16px;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    color:#fff;
+    background:#173650;
+    touch-action:manipulation;
+  }
+  button.primary{
+    background:var(--orange);
+    color:#101820;
+  }
+  button:active{
+    transform:scale(.98);
+  }
+  .pad{
+    width:188px;
+    margin:14px auto 0;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+  }
+  .pad button{
+    min-width:0;
+    height:54px;
+    padding:0;
+    font-size:23px;
+    background:#102c43;
+    border:1px solid var(--line);
+  }
+  .hint{
+    margin-top:10px;
+    text-align:center;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.35;
+  }
+  .legend{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:12px;
+    font-size:13px;
+    color:#c7d2dc;
+  }
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.72);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:10;
+  }
+  .overlay.show{display:flex}
+  .modal{
+    width:min(390px,100%);
+    background:#0b2236;
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:22px;
+    text-align:center;
+  }
+  .modal h2{margin:0 0 8px}
+  .modal p{color:#c8d3dc}
+  .modal button{width:100%;margin-top:8px}
+  @media(max-width:520px){
+    body{padding:8px}
+    .top{display:block}
+    .stats{margin-top:10px}
+    .stat{flex:1}
+    .game-card{padding:6px}
+    .actions button{flex:1 1 140px}
+    .pad{width:204px}
+    .pad button{height:58px}
+    .phase-selector{gap:5px}
+    .phase-card{padding:8px 3px}
+    .phase-card b{font-size:11px}
+    .phase-card small{font-size:9px}
+  }
+</style>
+
+<style id="cwExtrasCss">
+#cwDemoBtn,#cwRankBtn{
+  min-height:44px;padding:10px 14px;border-radius:12px;border:1px solid #56a3ff;
+  background:#0a2347;color:#fff;font-weight:900;cursor:pointer
+}
+#cwDemoBtn{width:100%;margin:10px 0}
+#cwRankBtn{position:fixed;right:14px;bottom:14px;z-index:9997;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#cwDemoOverlay,#cwRankOverlay{position:fixed;inset:0;z-index:9999;background:rgba(2,10,22,.9);display:none;align-items:center;justify-content:center;padding:16px}
+#cwDemoOverlay.show,#cwRankOverlay.show{display:flex}
+.cwModal{width:min(720px,100%);max-height:90vh;overflow:auto;background:#071d37;border:1px solid #49617c;border-radius:18px;padding:16px;color:#fff}
+.cwModal h2{margin:0 0 12px;color:#56a3ff}
+.cwModal video{display:block;width:100%;max-height:66vh;border-radius:12px;background:#000}
+.cwClose{width:100%;min-height:44px;margin-top:12px;border:0;border-radius:12px;background:#1266c3;color:#fff;font-weight:900;cursor:pointer}
+.cwNote{color:#c7d4e3;font-size:13px;margin:10px 0 0}
+#cwRankList{display:grid;gap:8px;margin-top:10px}
+.cwRankRow{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;padding:10px;border-radius:12px;background:#0a2347;border:1px solid #355675}
+.cwRankPos{font-weight:900;font-size:18px;text-align:center;color:#56a3ff}
+.cwRankName{font-weight:800}.cwRankSub{font-size:12px;color:#c7d4e3;margin-top:2px}
+.cwRankVal{text-align:right;font-weight:900}.cwLive{font-size:10px;color:#9fd0ff}
+#cwMyPos{margin:10px 0;padding:9px;border-radius:10px;background:#09223f;color:#fff;font-weight:800;text-align:center}
+@media(max-width:600px){#cwRankBtn{right:8px;bottom:8px;font-size:12px;padding:9px 10px}.cwRankRow{grid-template-columns:34px 1fr auto}}
+</style>
+
+</head>
+<body>
+<div class="app" id="app" tabindex="0">
+  <div class="top">
+    <div>
+      <h1 id="heroTitle">RUTA CARGO 🚚</h1>
+      <div class="subtitle" id="heroSubtitle">Recoge cajas y completa tu ruta.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><input id="playerName" placeholder="Nombre completo" style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#0b2236;color:white;flex:1;min-width:180px"><select id="branch" required style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#0b2236;color:white;flex:1;min-width:140px">
+<option value="">Selecciona tu sucursal</option>
+<option>Estado de México</option>
+<option>Buenos Aires</option>
+<option>Victoria</option>
+<option>Nuevo Repueblo</option>
+<option>Leamington</option>
+<option>Tampico</option>
+<option>Ontario</option>
+<option>Detroit</option>
+<option>San Antonio</option>
+<option>Laredo</option>
+</select></div>
+    </div>
+    <div class="stats">
+      <div class="stat">📦 Cajas<br><strong id="score">0</strong></div>
+      <div class="stat">⭐ Récord<br><strong id="best">0</strong></div>
+      <div class="stat">🎟️ Intentos<br><strong id="attempts">3 / 3</strong></div>
+    </div>
+  </div>
+
+  <div class="phase-selector" id="phaseSelector"></div>
+
+  <div class="game-card">
+    <canvas id="game" width="600" height="600"></canvas>
+  </div>
+
+  <div class="message" id="message">Presiona INICIAR para comenzar.</div>
+
+  <div class="actions">
+    <button class="primary" id="start">INICIAR / REINICIAR</button>
+    <button id="pause">PAUSA</button>
+  </div>
+
+  <div class="pad" aria-label="Controles">
+    <span></span>
+    <button data-dir="up">▲</button>
+    <span></span>
+    <button data-dir="left">◀</button>
+    <button data-dir="down">▼</button>
+    <button data-dir="right">▶</button>
+  </div>
+
+  <div class="hint">En celular puedes usar los botones o deslizar el dedo sobre el tablero.</div>
+  <div class="legend">
+    <span>🚚 Camión</span>
+    <span>📦 Caja</span>
+    <span>🟧 Carga acumulada</span>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>🚨 Ruta bloqueada</h2>
+    <p id="finalText">Terminaste la partida.</p>
+    <button class="primary" id="again">VOLVER A JUGAR</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  /* ============================================================
+     CAMBIA SOLO ESTE NÚMERO EN GITHUB:
+     1 = FASE 1
+     2 = FASE 2
+     3 = FASE 3
+     ============================================================ */
+  const FASE_ACTIVA = 1;
+
+  const FASES = {
+    1:{
+      titulo:"RUTA CARGO · FASE 1 🚚",
+      subtitulo:"Fase 1: recoge cajas y aumenta tu carga.",
+      grid:18,
+      velocidad:155,
+      velocidadMin:80,
+      aceleracion:3,
+      obstaculos:0,
+      mensaje:"¡Fase 1! Recoge todas las cajas que puedas 📦"
+    },
+    2:{
+      titulo:"RUTA CARGO · FASE 2 🚚",
+      subtitulo:"Fase 2: recoge cajas, aumenta tu carga y esquiva obstáculos.",
+      grid:20,
+      velocidad:125,
+      velocidadMin:58,
+      aceleracion:4,
+      obstaculos:12,
+      mensaje:"¡Fase 2! Recoge las cajas y evita los conos 🚧"
+    },
+    3:{
+      titulo:"RUTA CARGO · FASE 3 🚚",
+      subtitulo:"Fase 3: más velocidad, más obstáculos y rutas más cerradas.",
+      grid:22,
+      velocidad:105,
+      velocidadMin:48,
+      aceleracion:4,
+      obstaculos:24,
+      mensaje:"¡Fase 3! Alta velocidad: evita cierres y recoge las cajas 📦"
+    }
+  };
+  const CFG = FASES[FASE_ACTIVA];
+
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const scoreEl = document.getElementById("score");
+  const bestEl = document.getElementById("best");
+  const attemptsEl = document.getElementById("attempts");
+  const message = document.getElementById("message");
+  const overlay = document.getElementById("overlay");
+  const finalText = document.getElementById("finalText");
+  const startBtn = document.getElementById("start");
+  const pauseBtn = document.getElementById("pause");
+  const againBtn = document.getElementById("again");
+  const app = document.getElementById("app");
+  const playerName = document.getElementById("playerName");
+  const branch = document.getElementById("branch");
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz2TfGOW-n8WMDmMJzLbKegXSFATVymeAm9fHqOJNAglGqcz7lOMZIgZkjP4fXJYpof/exec";
+  let submitted = false;
+  let waitingForFirstMove = true;
+  const MAX_ATTEMPTS = 3;
+  let currentPlayerKey = "";
+
+  function playerKey(){
+    return "rutaCargoUnificadoFase" + FASE_ACTIVA + "Attempts::" + playerName.value.trim().toLowerCase() + "::" + branch.value.trim().toLowerCase();
+  }
+  function attemptsUsed(){
+    const key = playerKey();
+    return Number(localStorage.getItem(key) || 0);
+  }
+  function updateAttempts(){
+    const used = attemptsUsed();
+    attemptsEl.textContent = Math.max(0, MAX_ATTEMPTS-used) + " / " + MAX_ATTEMPTS;
+    if(used >= MAX_ATTEMPTS){
+      startBtn.disabled = true;
+      againBtn.disabled = true;
+    } else {
+      startBtn.disabled = false;
+      againBtn.disabled = false;
+    }
+  }
+  playerName.addEventListener("input", updateAttempts);
+  branch.addEventListener("change", updateAttempts);
+
+  function guardarResultado(){
+    if(submitted || !playerName.value.trim()) return;
+    submitted = true;
+    fetch(WEB_APP_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({nombre:playerName.value.trim(),sucursal:branch.value.trim(),puntos:score,fase:"Fase "+FASE_ACTIVA,juego:"Ruta Cargo"})}).catch(()=>{});
+  }
+
+  const GRID = CFG.grid;
+  const SIZE = canvas.width / GRID;
+
+  let truck = [];
+  let box = {x:12,y:8};
+  let dir = {x:1,y:0};
+  let nextDir = {x:1,y:0};
+  let score = 0;
+  let best = 0;
+  let obstacles = [];
+  let running = false;
+  let paused = false;
+  let timer = null;
+  let speed = CFG.velocidad;
+
+  function stopTimer(){
+    if(timer){
+      clearTimeout(timer);
+      timer = null;
+    }
+  }
+
+  function startGame(){
+    if(!playerName.value.trim()){ alert("Escribe tu nombre antes de comenzar."); playerName.focus(); return; }
+    if(!branch.value.trim()){ alert("Selecciona tu sucursal antes de comenzar."); branch.focus(); return; }
+    const key = playerKey();
+    const used = attemptsUsed();
+    if(used >= MAX_ATTEMPTS){
+      updateAttempts();
+      alert("Ya utilizaste tus 3 oportunidades de juego.");
+      message.textContent = "Ya utilizaste tus 3 oportunidades. ¡Tu mejor puntaje queda registrado! 🏆";
+      return;
+    }
+    localStorage.setItem(key, String(used + 1));
+    currentPlayerKey = key;
+    updateAttempts();
+    submitted = false;
+    stopTimer();
+    overlay.classList.remove("show");
+    truck = [
+      {x:5,y:9},
+      {x:4,y:9},
+      {x:3,y:9}
+    ];
+    dir = {x:1,y:0};
+    nextDir = {x:1,y:0};
+    score = 0;
+    speed = CFG.velocidad;
+    running = true;
+    paused = false;
+    waitingForFirstMove = true;
+    scoreEl.textContent = "0";
+    pauseBtn.textContent = "PAUSA";
+    message.textContent = CFG.mensaje;
+    makeObstacles(CFG.obstaculos);
+    placeBox();
+    draw();
+    message.textContent = "Elige una dirección para comenzar 🚚";
+    // El camión permanece quieto hasta la primera flecha/botón/deslizamiento.
+  }
+
+  function makeObstacles(n){
+    obstacles=[];
+    while(obstacles.length<n){
+      const p={x:Math.floor(Math.random()*GRID),y:Math.floor(Math.random()*GRID)};
+      const nearStart=(p.x>=2&&p.x<=8&&p.y>=Math.floor(GRID*.35)&&p.y<=Math.floor(GRID*.60));
+      if(!nearStart && !obstacles.some(o=>o.x===p.x&&o.y===p.y)) obstacles.push(p);
+    }
+  }
+
+  function placeBox(){
+    let pos;
+    do{
+      pos = {x: Math.floor(Math.random()*GRID), y: Math.floor(Math.random()*GRID)};
+    }while(truck.some(p => p.x===pos.x && p.y===pos.y) || obstacles.some(o=>o.x===pos.x&&o.y===pos.y));
+    box = pos;
+  }
+
+  function schedule(){
+    stopTimer();
+    if(running && !paused){
+      timer = setTimeout(step, speed);
+    }
+  }
+
+  function step(){
+    dir = nextDir;
+    const head = truck[0];
+    const next = {
+      x: head.x + dir.x,
+      y: head.y + dir.y
+    };
+
+    const hitWall =
+      next.x < 0 || next.y < 0 ||
+      next.x >= GRID || next.y >= GRID;
+
+    const willGrow = next.x===box.x && next.y===box.y;
+    const bodyToCheck = willGrow ? truck : truck.slice(0,-1);
+    const hitSelf = bodyToCheck.some(p => p.x===next.x && p.y===next.y);
+    const hitObstacle = obstacles.some(o => o.x===next.x && o.y===next.y);
+
+    if(hitWall || hitSelf || hitObstacle){
+      endGame();
+      return;
+    }
+
+    truck.unshift(next);
+
+    if(willGrow){
+      score++;
+      scoreEl.textContent = score;
+
+      if(score > best){
+        best = score;
+        bestEl.textContent = best;
+      }
+
+      speed = Math.max(CFG.velocidadMin, CFG.velocidad - score*CFG.aceleracion);
+      placeBox();
+    }else{
+      truck.pop();
+    }
+
+    draw();
+    schedule();
+  }
+
+  function endGame(){
+    running = false;
+    guardarResultado();
+    stopTimer();
+    draw(true);
+    const remaining = Math.max(0, MAX_ATTEMPTS - attemptsUsed());
+    finalText.textContent =
+      "Recogiste " + score + (score===1 ? " caja. " : " cajas. ") +
+      (remaining > 0 ? "Te " + (remaining===1 ? "queda 1 oportunidad." : "quedan " + remaining + " oportunidades.") : "Ya utilizaste tus 3 oportunidades.");
+    againBtn.textContent = remaining > 0 ? "VOLVER A JUGAR" : "SIN MÁS OPORTUNIDADES";
+    againBtn.disabled = remaining <= 0;
+    overlay.classList.add("show");
+    message.textContent = "Partida terminada.";
+  }
+
+  function setDirection(name){
+    const map = {
+      up:{x:0,y:-1},
+      down:{x:0,y:1},
+      left:{x:-1,y:0},
+      right:{x:1,y:0}
+    };
+    const d = map[name];
+    if(!d || !running || paused) return;
+
+    if(waitingForFirstMove){
+      dir=d;
+      nextDir=d;
+      waitingForFirstMove=false;
+      message.textContent="¡Entrega en proceso! Recoge las cajas 📦";
+      schedule();
+      return;
+    }
+
+    // Evita reversas rápidas de 180° entre movimientos.
+    if(d.x === -nextDir.x && d.y === -nextDir.y) return;
+    if(d.x === -dir.x && d.y === -dir.y) return;
+    nextDir=d;
+  }
+
+  function draw(gameOver=false){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "#071827";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.strokeStyle = "rgba(255,255,255,.055)";
+    ctx.lineWidth = 1;
+
+    for(let i=1;i<GRID;i++){
+      ctx.beginPath();
+      ctx.moveTo(i*SIZE,0);
+      ctx.lineTo(i*SIZE,canvas.height);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(0,i*SIZE);
+      ctx.lineTo(canvas.width,i*SIZE);
+      ctx.stroke();
+    }
+
+    obstacles.forEach(o=>{
+      const x=o.x*SIZE, y=o.y*SIZE;
+      ctx.font=(SIZE*0.70)+"px Arial";
+      ctx.textAlign="center";
+      ctx.textBaseline="middle";
+      ctx.fillText("🚧",x+SIZE/2,y+SIZE/2);
+    });
+
+    ctx.font = `${SIZE*.66}px Arial`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(
+      "📦",
+      box.x*SIZE + SIZE/2,
+      box.y*SIZE + SIZE/2
+    );
+
+    truck.forEach((p,i)=>{
+      if(i===0){
+        ctx.save();
+        ctx.translate(
+          p.x*SIZE + SIZE/2,
+          p.y*SIZE + SIZE/2
+        );
+
+        let angle = 0;
+        if(dir.x===-1) angle = Math.PI;
+        if(dir.y===1) angle = Math.PI/2;
+        if(dir.y===-1) angle = -Math.PI/2;
+
+        ctx.rotate(angle);
+        ctx.scale(-1,1);
+        ctx.font = `${SIZE*.70}px Arial`;
+        ctx.fillText("🚚",0,0);
+        ctx.restore();
+      }else{
+        ctx.fillStyle = i%2 ? "#f28c28" : "#d97820";
+        ctx.beginPath();
+        ctx.roundRect(
+          p.x*SIZE+4,
+          p.y*SIZE+4,
+          SIZE-8,
+          SIZE-8,
+          7
+        );
+        ctx.fill();
+
+        ctx.font = `${SIZE*.42}px Arial`;
+        ctx.fillText(
+          "📦",
+          p.x*SIZE + SIZE/2,
+          p.y*SIZE + SIZE/2
+        );
+      }
+    });
+
+    if(gameOver){
+      ctx.fillStyle = "rgba(0,0,0,.28)";
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+    }
+  }
+
+  startBtn.addEventListener("click",startGame);
+  againBtn.addEventListener("click",startGame);
+
+  pauseBtn.addEventListener("click",()=>{
+    if(!running) return;
+
+    paused = !paused;
+    pauseBtn.textContent = paused ? "CONTINUAR" : "PAUSA";
+
+    if(paused){
+      stopTimer();
+      message.textContent = "⏸️ Juego en pausa.";
+    }else{
+      message.textContent = "¡Entrega en proceso! Recoge las cajas 📦";
+      schedule();
+    }
+  });
+
+  document.querySelectorAll("[data-dir]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      setDirection(btn.dataset.dir);
+    });
+  });
+
+  app.addEventListener("keydown",e=>{
+    const keyMap = {
+      ArrowUp:"up",
+      ArrowDown:"down",
+      ArrowLeft:"left",
+      ArrowRight:"right"
+    };
+    if(keyMap[e.key]){
+      e.preventDefault();
+      setDirection(keyMap[e.key]);
+    }
+  });
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  canvas.addEventListener("pointerdown",e=>{
+    touchStartX = e.clientX;
+    touchStartY = e.clientY;
+  });
+
+  canvas.addEventListener("pointerup",e=>{
+    const dx = e.clientX - touchStartX;
+    const dy = e.clientY - touchStartY;
+
+    if(Math.max(Math.abs(dx),Math.abs(dy)) < 18) return;
+
+    if(Math.abs(dx) > Math.abs(dy)){
+      setDirection(dx > 0 ? "right" : "left");
+    }else{
+      setDirection(dy > 0 ? "down" : "up");
+    }
+  });
+
+  function paintPhases(){
+    document.getElementById("phaseSelector").innerHTML=[1,2,3].map(n=>{
+      const active=n===FASE_ACTIVA;
+      return `<div class="phase-card ${active?"active":"locked"}">
+        <div class="lock">${active?"🔓":"🔒"}</div>
+        <b>FASE ${n}</b>
+        <small>${active?"DISPONIBLE":"BLOQUEADA"}</small>
+      </div>`;
+    }).join("");
+  }
+
+  document.getElementById("heroTitle").textContent=CFG.titulo;
+  document.getElementById("heroSubtitle").textContent=CFG.subtitulo;
+  paintPhases();
+  updateAttempts();
+  draw();
+})();
+</script>
+
+<script id="cwExtrasJs">
+(()=>{
+ const CW_URL="https://script.google.com/macros/s/AKfycbz2TfGOW-n8WMDmMJzLbKegXSFATVymeAm9fHqOJNAglGqcz7lOMZIgZkjP4fXJYpof/exec";
+ function cwPhase(){
+   const m=(document.body.innerText.match(/FASE\s+(\d)/i)||[])[1];
+   return Number(m||1);
+ }
+ 
+function cwProgress(){
+ const name=(document.querySelector('#playerName')?.value||'').trim(), branch=document.querySelector('#branch')?.value||'';
+ if(!name||!branch) return null;
+ const pts=Number(document.querySelector('#score')?.textContent||0);
+ return {nombre:name,sucursal:branch,fase:'Fase '+cwPhase(),valor:pts,detalle:pts+' cajas'};
+}
+
+ const start=document.getElementById('startBtn');
+ if(start){
+   const b=document.createElement('button'); b.type='button'; b.id='cwDemoBtn'; b.textContent='▶ VER CÓMO SE JUEGA';
+   start.insertAdjacentElement('beforebegin',b);
+   const o=document.createElement('div'); o.id='cwDemoOverlay';
+   o.innerHTML=`<div class="cwModal"><h2>🎬 DEMOSTRACIÓN</h2><video id="cwDemoVideo" controls playsinline preload="metadata"><source src="demo.mp4" type="video/mp4">Tu navegador no puede reproducir el video.</video><p class="cwNote">Puedes verlo cuantas veces quieras. No inicia el cronómetro, no consume oportunidades y no manda resultados.</p><button type="button" class="cwClose" id="cwDemoClose">ENTENDIDO · VOLVER</button></div>`;
+   document.body.appendChild(o);
+   const v=o.querySelector('#cwDemoVideo');
+   const close=()=>{v.pause();v.currentTime=0;o.classList.remove('show')};
+   b.addEventListener('click',()=>{o.classList.add('show');v.currentTime=0;v.play().catch(()=>{})});
+   o.querySelector('#cwDemoClose').addEventListener('click',close);
+   o.addEventListener('click',e=>{if(e.target===o)close()});
+ }
+ const rb=document.createElement('button'); rb.id='cwRankBtn'; rb.type='button'; rb.textContent='🏆 RANKING EN VIVO';
+ document.body.appendChild(rb);
+ const ro=document.createElement('div'); ro.id='cwRankOverlay';
+ ro.innerHTML=`<div class="cwModal"><h2>🏆 Ranking en vivo</h2><div id="cwMyPos">Actualizando…</div><div id="cwRankList"></div><p class="cwNote">Se actualiza aproximadamente cada 8 segundos. “EN JUEGO” indica participantes que todavía no terminan.</p><button type="button" class="cwClose" id="cwRankClose">CERRAR</button></div>`;
+ document.body.appendChild(ro);
+ rb.onclick=()=>{ro.classList.add('show');cwLoadRank()};
+ ro.querySelector('#cwRankClose').onclick=()=>ro.classList.remove('show');
+ ro.addEventListener('click',e=>{if(e.target===ro)ro.classList.remove('show')});
+
+ let cbn=0;
+ function cwLoadRank(){
+   const cb='cwRankCb'+(++cbn);
+   window[cb]=(data)=>{
+     try{cwRender(data)}finally{delete window[cb]; document.getElementById(cb)?.remove();}
+   };
+   const s=document.createElement('script'); s.id=cb;
+   s.src=CW_URL+'?action=ranking&fase='+encodeURIComponent('Fase '+cwPhase())+'&callback='+cb+'&_='+Date.now();
+   s.onerror=()=>{document.querySelector('#cwMyPos').textContent='No se pudo cargar el ranking. Revisa que Apps Script esté actualizado.'; delete window[cb]; s.remove();};
+   document.body.appendChild(s);
+ }
+ function cwRender(data){
+   const rows=(data&&data.ranking)||[], box=document.querySelector('#cwRankList');
+   box.innerHTML='';
+   rows.slice(0,8).forEach((r,i)=>{
+     const el=document.createElement('div'); el.className='cwRankRow';
+     el.innerHTML=`<div class="cwRankPos">${i+1}</div><div><div class="cwRankName">${esc(r.nombre||'Participante')}</div><div class="cwRankSub">${esc(r.sucursal||'')} ${r.estado==='EN JUEGO'?'<span class="cwLive">● EN JUEGO</span>':''}</div></div><div class="cwRankVal">${esc(r.detalle||String(r.valor??''))}</div>`;
+     box.appendChild(el);
+   });
+   if(!rows.length) box.innerHTML='<div class="cwNote">Todavía no hay participantes registrados en esta fase.</div>';
+   const p=cwProgress(); let pos=0;
+   if(p) pos=rows.findIndex(r=>(r.nombre||'').toLowerCase()===p.nombre.toLowerCase()&&(r.sucursal||'').toLowerCase()===p.sucursal.toLowerCase())+1;
+   document.querySelector('#cwMyPos').textContent=pos?'Tu posición actual: #'+pos:'Tu posición aparecerá cuando comiences a jugar.';
+ }
+ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ function cwSendProgress(){
+   const p=cwProgress(); if(!p)return;
+   p.tipo='progreso';
+   fetch(CW_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)}).catch(()=>{});
+ }
+ setInterval(()=>{cwSendProgress();cwLoadRank()},8000);
+ setTimeout(cwLoadRank,1200);
+})();
+</script>
+
+</body>
+</html>
