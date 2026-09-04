@@ -1,0 +1,452 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reto Logístico · 3 Fases | Cargo Monterrey</title>
+<style>
+:root{--navy:#061a36;--navy2:#0a2b58;--blue:#2475d9;--silver:#b9c2cf;--line:#35516f;--white:#fff;--gold:#e6a400}
+*{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 50% 0,#0b2a55 0,#061a36 42%,#031126 100%);color:#fff;font-family:Arial,Helvetica,sans-serif;min-height:100vh}.wrap{max-width:1180px;margin:auto;padding:22px}.hero{display:grid;grid-template-columns:190px 1px 1fr;gap:28px;align-items:center;padding:12px 12px 24px}.logoBox{background:transparent;border-radius:0;padding:0;text-align:center}.logoBox img{width:100%;height:135px;object-fit:contain}.divider{height:120px;background:#7e8ca0}.hero h1{font-size:clamp(30px,5vw,58px);margin:0;letter-spacing:.04em;text-transform:uppercase}.hero p{color:#c6ced9;font-size:clamp(14px,2vw,21px);line-height:1.45;margin:10px 0 0;text-transform:uppercase}.stats{border:1px solid var(--line);border-radius:18px;padding:17px 24px;display:grid;grid-template-columns:repeat(3,1fr);margin-bottom:18px;background:#071a35cc}.stat{padding:4px 25px;border-right:1px solid var(--line)}.stat:last-child{border:0}.stat small{color:#cbd5e1;font-weight:700}.stat strong{display:block;font-size:28px;margin-top:4px}.game{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:18px}.panel{border:1px solid var(--line);border-radius:18px;background:#071a35d9;padding:16px}.maze-wrap{max-width:700px;margin:auto;border:2px solid #8c98a8;background:#152941;padding:7px;border-radius:10px}#maze{display:grid;gap:2px;aspect-ratio:1/1;touch-action:none;user-select:none;-webkit-user-select:none}.cell{border-radius:2px;position:relative}.wall{background:linear-gradient(135deg,#8793a2,#c7cdd5 50%,#687584)}.path{background:#07172f}.goal{background:linear-gradient(135deg,#ffbd17,#9d6900);box-shadow:inset 0 0 0 2px #ffd45a}.goal:after{content:'META';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:#3b2900}.player{background:#07172f}.player:after{content:'🚚';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(15px,3vw,27px)}form{display:grid;gap:11px}label{font-size:13px;font-weight:700;color:#cdd6e2}input,select{width:100%;margin-top:6px;background:#07172f;color:#fff;border:1px solid #49617c;border-radius:10px;padding:12px;font-size:16px;min-height:46px}button{border:0;border-radius:10px;min-height:48px;font-weight:800;cursor:pointer}#startBtn{background:linear-gradient(90deg,#0752a9,#1873d8);color:#fff;font-size:15px}.side h2{color:#56a3ff;font-size:19px;margin:5px 0 10px}.how{padding:12px 2px 18px;border-bottom:1px solid var(--line);margin-bottom:16px}.swipe{font-size:44px;text-align:center;color:#5aa8ff;margin:8px}.how p,.note{color:#d7dee8;line-height:1.5}.controls{display:grid;grid-template-columns:repeat(3,48px);gap:6px;justify-content:center;margin-top:14px}.controls button{background:#0b2345;color:#fff;border:1px solid #58708b;font-size:20px}.controls button:disabled{opacity:.35}.controls span{width:48px}.status{margin:15px 0 0;padding:12px;border-radius:10px;background:#0a2347;color:#dce7f5;font-size:14px}.footer{margin-top:18px;border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;color:#a9cfff;letter-spacing:.08em;font-weight:700}.ranking{margin-top:16px}.rank-row{display:grid;grid-template-columns:34px 1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid #203c5c;font-size:12px}.branch{color:#91a3b8}.time{font-weight:800}.name{font-weight:700}
+.phase-selector{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 18px}
+.phase-card{border:1px solid #49617c;border-radius:14px;padding:12px;text-align:center;background:#071a35cc}
+.phase-card.active{border:2px solid #56a3ff;box-shadow:0 0 0 2px rgba(86,163,255,.10)}
+.phase-card.locked{opacity:.45}
+.phase-card .lock{font-size:20px}
+.phase-card b{display:block;margin:5px 0 2px}
+.phase-card small{color:#aebbd0;font-weight:700;letter-spacing:.06em}
+@media(max-width:780px){.wrap{padding:10px}.hero{grid-template-columns:105px 1fr;gap:14px;padding:5px 3px 14px}.divider{display:none}.logoBox{padding:0;border-radius:0}.logoBox img{height:78px}.hero h1{font-size:25px}.hero p{font-size:11px;margin-top:5px}.stats{padding:10px 5px}.stat{padding:3px 9px}.stat strong{font-size:18px}.stat:nth-child(3){display:none}.game{grid-template-columns:1fr}.side{display:flex;flex-direction:column}.how{order:2}.side form{order:1}.ranking{order:3}.controls{display:none}.maze-wrap{padding:4px}.panel{padding:9px}.footer{font-size:11px}.goal:after{font-size:6px}.phase-selector{grid-template-columns:1fr 1fr 1fr;gap:5px}.phase-card{padding:8px 3px}.phase-card b{font-size:11px}.phase-card small{font-size:9px}}
+</style>
+<style id="cwExtrasCss">
+#cwDemoBtn{
+  min-height:44px;padding:10px 14px;border-radius:12px;border:1px solid #56a3ff;
+  background:#0a2347;color:#fff;font-weight:900;cursor:pointer
+}
+#cwDemoBtn{width:100%;margin:10px 0}
+#cwDemoOverlay{position:fixed;inset:0;z-index:9999;background:rgba(2,10,22,.9);display:none;align-items:center;justify-content:center;padding:16px}
+#cwDemoOverlay.show{display:flex}
+.cwModal{width:min(720px,100%);max-height:90vh;overflow:auto;background:#071d37;border:1px solid #49617c;border-radius:18px;padding:16px;color:#fff}
+.cwModal h2{margin:0 0 12px;color:#56a3ff}
+.cwModal video{display:block;width:100%;max-height:66vh;border-radius:12px;background:#000}
+.cwClose{width:100%;min-height:44px;margin-top:12px;border:0;border-radius:12px;background:#1266c3;color:#fff;font-weight:900;cursor:pointer}
+.cwNote{color:#c7d4e3;font-size:13px;margin:10px 0 0}
+#cwRankList{display:grid;gap:8px;margin-top:10px}
+.cwRankRow{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;padding:10px;border-radius:12px;background:#0a2347;border:1px solid #355675}
+.cwRankPos{font-weight:900;font-size:18px;text-align:center;color:#56a3ff}
+.cwRankName{font-weight:800}.cwRankSub{font-size:12px;color:#c7d4e3;margin-top:2px}
+.cwRankVal{text-align:right;font-weight:900}.cwLive{font-size:10px;color:#9fd0ff}
+#cwMyPos{margin:10px 0;padding:9px;border-radius:10px;background:#09223f;color:#fff;font-weight:800;text-align:center}
+@media(max-width:600px){.cwRankRow{grid-template-columns:30px 1fr;gap:7px}.cwRankVal{grid-column:2;font-size:11px}.cwLiveRank{padding:12px}.cwLiveRank h2{font-size:17px}}
+</style>
+
+</head><body><div class="wrap">
+<header class="hero"><div class="logoBox"><img src="cargo-logo-white.png" alt="Cargo Monterrey"></div><div class="divider"></div><div><h1 id="heroTitle">Reto Logístico</h1><p id="heroDesc">Lleva la carga a META en el menor tiempo posible</p></div></header><section class="phase-selector" id="phaseSelector"></section>
+<section class="stats"><div class="stat"><small>⏱ TIEMPO</small><strong id="timer">00:00.00</strong></div><div class="stat"><small>▥ MOVIMIENTOS</small><strong id="moves">0</strong></div><div class="stat"><small>🏁 OBJETIVO</small><strong style="font-size:16px">LLEGA A META</strong></div></section>
+<div class="game"><main class="panel"><div class="maze-wrap"><div id="maze" aria-label="Laberinto digital"></div></div><div class="controls"><span></span><button type="button" data-dir="up">↑</button><span></span><button type="button" data-dir="left">←</button><button type="button" data-dir="down">↓</button><button type="button" data-dir="right">→</button></div><p class="status" id="status">Escribe tu nombre y sucursal para comenzar. En celular, desliza el dedo sobre el laberinto.</p></main>
+<aside class="panel side"><div class="how"><h2>¿CÓMO JUGAR?</h2><div class="swipe">↔︎ ☝ ↕︎</div><p>Desliza tu dedo en la dirección que quieras para mover el camión. En computadora también puedes usar las flechas.</p></div><form id="playerForm"><h2>REGISTRA TU RETO</h2><label>Nombre<input id="playerName" maxlength="40" placeholder="Tu nombre" required></label><label>Sucursal<select id="branch" required><option value="">Selecciona</option><option>Estado de México</option><option>Buenos Aires</option><option>Victoria</option><option>Nuevo Repueblo</option><option>Leamington</option><option>Tampico</option><option>Ontario</option><option>Detroit</option><option>San Antonio</option><option>Laredo</option></select></label><div id="attemptInfo" class="status" style="margin:0 0 2px">Tienes 3 oportunidades por participante.</div><button id="startBtn" type="submit">INICIAR RETO</button></form><div class="ranking"><h2>🏆 RANKING LOCAL</h2><div id="leaderboard"><p class="note">Aún no hay participantes en este dispositivo.</p></div></div></aside></div><div class="footer" id="phaseFooter">TODOS JUEGAN EL MISMO LABERINTO · 3 OPORTUNIDADES</div></div><script>
+(() => {
+  /* ============================================================
+     CAMBIA SOLO ESTE NÚMERO EN GITHUB:
+     1 = FASE 1
+     2 = FASE 2
+     3 = FASE 3
+     ============================================================ */
+  const FASE_ACTIVA = 1;
+
+  const FASES = {
+    1:{size:13,start:{r:11,c:1},goal:{r:1,c:11},seed:2,nivel:'NIVEL INICIAL',desc:'RÁPIDO, PRECISO Y SEGURO'},
+    2:{size:17,start:{r:15,c:1},goal:{r:1,c:15},seed:9,nivel:'NIVEL DIFÍCIL',desc:'MÁS CAMINOS Y MÁS DECISIONES'},
+    3:{size:21,start:{r:19,c:1},goal:{r:1,c:19},seed:3817,nivel:'NIVEL EXPERTO',desc:'RECORRIDO MÁS LARGO Y RETADOR'}
+  };
+  const CFG = FASES[FASE_ACTIVA];
+  const size = CFG.size;
+  const mazeEl = document.getElementById('maze');
+  const timerEl = document.getElementById('timer');
+  const statusEl = document.getElementById('status');
+  const form = document.getElementById('playerForm');
+  const startBtn = document.getElementById('startBtn');
+  const controls = [...document.querySelectorAll('.controls button')];
+  const leaderboardEl = document.getElementById('leaderboard');
+  const movesEl = document.getElementById('moves');
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbylVLNnPJQ-NI9yJwTCWovUVbTzNd45iF-atObRyO8TzNX3gMLVZRLeMHeZaeD4nzvm/exec';
+  const MAX_ATTEMPTS = 3;
+  const attemptInfoEl = document.getElementById('attemptInfo');
+
+  function participantKey(name,branch){
+    return 'cargoMazeUnificadoFase'+FASE_ACTIVA+'Attempts::'+name.trim().toLowerCase().replace(/\s+/g,' ')+'::'+branch.trim().toLowerCase();
+  }
+  function getAttempts(name,branch){
+    const n=parseInt(localStorage.getItem(participantKey(name,branch))||'0',10);
+    return Number.isFinite(n)?n:0;
+  }
+  function setAttempts(name,branch,n){
+    localStorage.setItem(participantKey(name,branch),String(n));
+  }
+  function updateAttemptInfo(name,branch){
+    if(!name || !branch){
+      attemptInfoEl.textContent='Tienes 3 oportunidades por participante.';
+      startBtn.disabled=false;
+      return;
+    }
+    const used=getAttempts(name,branch);
+    const left=Math.max(0,MAX_ATTEMPTS-used);
+    attemptInfoEl.textContent=left>0 ? `Oportunidades restantes: ${left} de ${MAX_ATTEMPTS}` : 'Ya utilizaste tus 3 oportunidades.';
+    startBtn.disabled=left<=0;
+    if(left<=0) startBtn.textContent='SIN OPORTUNIDADES';
+    else if(!active) startBtn.textContent=used===0?'INICIAR RETO':'JUGAR OTRA VEZ';
+  }
+
+  let grid = [];
+  let player = {...CFG.start};
+  const goal = {...CFG.goal};
+  let active = false;
+  let startedAt = 0;
+  let raf = null;
+  let current = null;
+  let scores = [];
+  let touchX = null;
+  let touchY = null;
+  let touchActive = false;
+  let moves = 0;
+
+  // Laberinto fijo de dificultad avanzada.
+  // Todos los participantes reciben exactamente el mismo recorrido.
+  function generateMaze(){
+    grid = Array.from({length:size},()=>Array(size).fill(1));
+    const dirs = [[2,0],[-2,0],[0,2],[0,-2]];
+
+    // Generador pseudoaleatorio con semilla fija: siempre produce el mismo laberinto.
+    let seed = CFG.seed;
+    function fixedRandom(){
+      seed = (seed + 0x6D2B79F5) >>> 0;
+      let t = seed;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+
+    function shuffleFixed(items){
+      const a=[...items];
+      for(let i=a.length-1;i>0;i--){
+        const j=Math.floor(fixedRandom()*(i+1));
+        [a[i],a[j]]=[a[j],a[i]];
+      }
+      return a;
+    }
+
+    function carve(r,c){
+      grid[r][c]=0;
+      const shuffled=shuffleFixed(dirs);
+      for(const [dr,dc] of shuffled){
+        const nr=r+dr,nc=c+dc;
+        if(nr>0 && nr<size-1 && nc>0 && nc<size-1 && grid[nr][nc]===1){
+          grid[r+dr/2][c+dc/2]=0;
+          carve(nr,nc);
+        }
+      }
+    }
+    carve(CFG.start.r,CFG.start.c);
+    grid[goal.r][goal.c]=0;
+    player={...CFG.start};
+    render();
+  }
+
+  function render(){
+    mazeEl.innerHTML='';
+    for(let r=0;r<size;r++){
+      for(let c=0;c<size;c++){
+        const d=document.createElement('div');
+        d.className='cell '+(grid[r][c]?'wall':'path');
+        if(r===goal.r && c===goal.c) d.className='cell goal';
+        if(r===player.r && c===player.c) d.className='cell player';
+        mazeEl.appendChild(d);
+      }
+    }
+  }
+
+  function fmt(ms){
+    ms=Math.max(0,ms);
+    const m=Math.floor(ms/60000);
+    const s=Math.floor(ms%60000/1000);
+    const cs=Math.floor(ms%1000/10);
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(cs).padStart(2,'0')}`;
+  }
+
+  function tick(){
+    if(!active) return;
+    timerEl.textContent=fmt(performance.now()-startedAt);
+    raf=requestAnimationFrame(tick);
+  }
+
+  function setControls(v){
+    controls.forEach(b=>b.disabled=!v);
+  }
+
+  function move(dr,dc){
+    if(!active) return;
+    const nr=player.r+dr, nc=player.c+dc;
+    if(nr<0 || nr>=size || nc<0 || nc>=size || grid[nr][nc]) return;
+    player={r:nr,c:nc};
+    moves++;
+    if(movesEl) movesEl.textContent=moves;
+    render();
+    if(player.r===goal.r && player.c===goal.c) finish();
+  }
+
+
+  async function sendResult(score){
+    try{
+      await fetch(WEB_APP_URL,{
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({
+          nombre:score.name,
+          sucursal:score.branch,
+          tiempo:fmt(score.time),
+          juego:'Laberinto Fase '+FASE_ACTIVA,
+          fase:'Fase '+FASE_ACTIVA
+        })
+      });
+      return true;
+    }catch(err){
+      console.error('No se pudo guardar el resultado:',err);
+      return false;
+    }
+  }
+
+  async function finish(){
+    active=false;
+    cancelAnimationFrame(raf);
+    setControls(false);
+    const elapsed=performance.now()-startedAt;
+    timerEl.textContent=fmt(elapsed);
+    const result={...current,time:elapsed};
+    scores.push(result);
+    scores.sort((a,b)=>a.time-b.time);
+    renderScores();
+
+    statusEl.textContent=`🎉 ¡Terminaste en ${fmt(elapsed)}! Guardando tu resultado...`;
+    const saved=await sendResult(result);
+
+    const pos=scores.findIndex(s=>s===result)+1;
+    statusEl.textContent=saved
+      ? `🎉 ¡Terminaste en ${fmt(elapsed)}! Resultado enviado. Posición en este dispositivo: #${pos}`
+      : `🎉 ¡Terminaste en ${fmt(elapsed)}! No se pudo confirmar el envío; avisa al organizador.`;
+
+    updateAttemptInfo(result.name,result.branch);
+  }
+
+  function renderScores(){
+    leaderboardEl.innerHTML='';
+    scores.slice(0,10).forEach((s,i)=>{
+      const row=document.createElement('div');
+      row.className='rank-row';
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+      row.innerHTML=`<strong>${medal}</strong><div><div class="name"></div><div class="branch"></div></div><div class="time"></div>`;
+      row.querySelector('.name').textContent=s.name;
+      row.querySelector('.branch').textContent=s.branch;
+      row.querySelector('.time').textContent=fmt(s.time);
+      leaderboardEl.appendChild(row);
+    });
+  }
+
+  form.addEventListener('submit',e=>{
+    e.preventDefault();
+    const name=document.getElementById('playerName').value.trim();
+    const branch=document.getElementById('branch').value;
+    if(!name || !branch){
+      statusEl.textContent='Completa tu nombre y sucursal.';
+      updateAttemptInfo(name,branch);
+      return;
+    }
+    const used=getAttempts(name,branch);
+    if(used>=MAX_ATTEMPTS){
+      statusEl.textContent='Ya utilizaste tus 3 oportunidades para este reto.';
+      updateAttemptInfo(name,branch);
+      return;
+    }
+    setAttempts(name,branch,used+1);
+    current={name,branch};
+    updateAttemptInfo(name,branch);
+    moves=0; if(movesEl) movesEl.textContent='0';
+    generateMaze();
+    active=true;
+    startedAt=performance.now();
+    timerEl.textContent='00:00.00';
+    setControls(true);
+    statusEl.textContent='¡Tiempo corriendo! En celular, desliza el dedo sobre el laberinto para mover el camión hasta META.';
+    cancelAnimationFrame(raf);
+    tick();
+  });
+
+  controls.forEach(b=>{
+    b.addEventListener('click',()=>{
+      const d=b.dataset.dir;
+      if(d==='up') move(-1,0);
+      if(d==='down') move(1,0);
+      if(d==='left') move(0,-1);
+      if(d==='right') move(0,1);
+    });
+  });
+
+  // Control táctil: arrastra el dedo sobre el laberinto.
+  // Mientras mantienes el dedo apoyado, cada pequeño desplazamiento mueve
+  // el camión una casilla, así puedes recorrer pasillos sin tocar botones.
+  mazeEl.addEventListener('touchstart',e=>{
+    if(!active || !e.touches.length) return;
+    const t=e.touches[0];
+    touchX=t.clientX;
+    touchY=t.clientY;
+    touchActive=true;
+    e.preventDefault();
+  },{passive:false});
+
+  mazeEl.addEventListener('touchmove',e=>{
+    if(!active || !touchActive || !e.touches.length) return;
+    const t=e.touches[0];
+    const dx=t.clientX-touchX;
+    const dy=t.clientY-touchY;
+
+    // Umbral pequeño para que el movimiento sea fluido, pero no accidental.
+    const threshold=Math.max(12, mazeEl.clientWidth/35);
+    if(Math.abs(dx)<threshold && Math.abs(dy)<threshold){
+      e.preventDefault();
+      return;
+    }
+
+    if(Math.abs(dx)>Math.abs(dy)){
+      move(0, dx>0 ? 1 : -1);
+    }else{
+      move(dy>0 ? 1 : -1, 0);
+    }
+
+    // Reiniciamos desde la posición actual para permitir varios movimientos
+    // durante un solo arrastre continuo.
+    touchX=t.clientX;
+    touchY=t.clientY;
+    e.preventDefault();
+  },{passive:false});
+
+  function endTouch(){
+    touchActive=false;
+    touchX=null;
+    touchY=null;
+  }
+  mazeEl.addEventListener('touchend',endTouch,{passive:true});
+  mazeEl.addEventListener('touchcancel',endTouch,{passive:true});
+
+  document.addEventListener('keydown',e=>{
+    if(!active || ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+    const map={
+      ArrowUp:[-1,0],
+      ArrowDown:[1,0],
+      ArrowLeft:[0,-1],
+      ArrowRight:[0,1]
+    };
+    if(map[e.key]){
+      e.preventDefault();
+      move(...map[e.key]);
+    }
+  });
+
+  document.getElementById('playerName').addEventListener('input',()=>{
+    updateAttemptInfo(document.getElementById('playerName').value,document.getElementById('branch').value);
+  });
+  document.getElementById('branch').addEventListener('change',()=>{
+    updateAttemptInfo(document.getElementById('playerName').value,document.getElementById('branch').value);
+  });
+
+  function paintPhaseSelector(){
+    const el=document.getElementById('phaseSelector');
+    el.innerHTML=[1,2,3].map(n=>{
+      const on=n===FASE_ACTIVA;
+      return `<div class="phase-card ${on?'active':'locked'}">
+        <div class="lock">${on?'🔓':'🔒'}</div>
+        <b>FASE ${n}</b>
+        <small>${on?'DISPONIBLE':'BLOQUEADA'}</small>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('heroTitle').textContent='Reto Logístico · Fase '+FASE_ACTIVA;
+  document.getElementById('heroDesc').innerHTML=CFG.nivel+' · '+CFG.desc+'<br>Lleva la carga a META en el menor tiempo posible';
+  document.getElementById('phaseFooter').textContent='FASE '+FASE_ACTIVA+' · TODOS JUEGAN EL MISMO LABERINTO · 3 OPORTUNIDADES';
+  mazeEl.style.gridTemplateColumns=`repeat(${size},1fr)`;
+  paintPhaseSelector();
+
+  updateAttemptInfo('', '');
+  setControls(false);
+  generateMaze();
+})();
+</script>
+
+<script id="cwExtrasJs">
+(()=>{
+ const CW_URL="https://script.google.com/macros/s/AKfycbylVLNnPJQ-NI9yJwTCWovUVbTzNd45iF-atObRyO8TzNX3gMLVZRLeMHeZaeD4nzvm/exec";
+ function cwPhase(){
+   const m=(document.body.innerText.match(/FASE\s+(\d)/i)||[])[1];
+   return Number(m||1);
+ }
+ 
+function cwProgress(){
+ const name=(document.querySelector('#playerName')?.value||'').trim(), branch=document.querySelector('#branch')?.value||'';
+ if(!name||!branch) return null;
+ const mov=Number(document.querySelector('#moves')?.textContent||0);
+ const t=document.querySelector('#timer')?.textContent||'00:00.00';
+ return {nombre:name,sucursal:branch,fase:'Fase '+cwPhase(),valor:0,detalle:'En juego · '+mov+' movimientos · '+t};
+}
+
+ const start=document.getElementById('startBtn');
+ if(start){
+   const b=document.createElement('button'); b.type='button'; b.id='cwDemoBtn'; b.textContent='▶ VER CÓMO SE JUEGA';
+   start.insertAdjacentElement('beforebegin',b);
+   const o=document.createElement('div'); o.id='cwDemoOverlay';
+   o.innerHTML=`<div class="cwModal"><h2>🎬 ANTES DE EMPEZAR · CÓMO SE JUEGA</h2><video id="cwDemoVideo" controls playsinline preload="metadata"><source src="demo.mp4" type="video/mp4">Tu navegador no puede reproducir el video.</video><p class="cwNote"><b>Mira esta demostración antes de iniciar.</b> Puedes verla cuantas veces quieras. No inicia el cronómetro, no consume oportunidades y no manda resultados.</p><button type="button" class="cwClose" id="cwDemoClose">ENTENDIDO · IR A JUGAR →</button></div>`;
+   document.body.appendChild(o);
+   const v=o.querySelector('#cwDemoVideo');
+   const close=()=>{v.pause();v.currentTime=0;o.classList.remove('show')};
+   b.addEventListener('click',()=>{o.classList.add('show');v.currentTime=0;v.play().catch(()=>{})});
+   o.querySelector('#cwDemoClose').addEventListener('click',close);
+   o.addEventListener('click',e=>{if(e.target===o)close()});
+   // La demostración aparece automáticamente antes del primer intento.
+   setTimeout(()=>{o.classList.add('show');v.currentTime=0;v.play().catch(()=>{})},350);
+   window.cwIntroShown=true;
+ }
+ const rankPanel=document.createElement('section'); rankPanel.id='cwLiveRank'; rankPanel.className='cwLiveRank';
+ rankPanel.innerHTML=`<div class="cwRankHead"><h2>🏆 RANKING EN VIVO</h2><div class="cwRankStatus"><span class="cwPulse"></span>ACTUALIZANDO</div></div><div id="cwMyPos" class="cwRankMyPos">Tu posición aparecerá cuando comiences a jugar.</div><div id="cwRankList" class="cwRankList"><div class="cwRankEmpty">Cargando ranking…</div></div><p class="cwNote">Se actualiza aproximadamente cada 8 segundos. “EN JUEGO” indica participantes que todavía no terminan.</p>`;
+ const footer=document.querySelector('.footer');
+ const wrap=document.querySelector('.wrap')||document.body;
+ if(footer&&footer.parentNode){footer.parentNode.insertBefore(rankPanel,footer)}else{wrap.appendChild(rankPanel)};
+
+ let cbn=0;
+ function cwLoadRank(){
+   const cb='cwRankCb'+(++cbn);
+   window[cb]=(data)=>{
+     try{cwRender(data)}finally{delete window[cb]; document.getElementById(cb)?.remove();}
+   };
+   const s=document.createElement('script'); s.id=cb;
+   s.src=CW_URL+'?action=ranking&fase='+encodeURIComponent('Fase '+cwPhase())+'&callback='+cb+'&_='+Date.now();
+   s.onerror=()=>{const mp=document.querySelector('#cwMyPos'); if(mp) mp.textContent='No se pudo cargar el ranking. Revisa que Apps Script esté actualizado.'; delete window[cb]; s.remove();};
+   document.body.appendChild(s);
+ }
+ function cwRender(data){
+   const rows=(data&&data.ranking)||[], box=document.querySelector('#cwRankList');
+   box.innerHTML='';
+   rows.slice(0,8).forEach((r,i)=>{
+     const el=document.createElement('div'); el.className='cwRankRow';
+     el.innerHTML=`<div class="cwRankPos">${i+1}</div><div><div class="cwRankName">${esc(r.nombre||'Participante')}</div><div class="cwRankSub">${esc(r.sucursal||'')} ${r.estado==='EN JUEGO'?'<span class="cwLive">● EN JUEGO</span>':''}</div></div><div class="cwRankVal">${esc(r.detalle||String(r.valor??''))}</div>`;
+     box.appendChild(el);
+   });
+   if(!rows.length) box.innerHTML='<div class="cwRankEmpty">Todavía no hay participantes registrados en esta fase.</div>';
+   const p=cwProgress(); let pos=0;
+   if(p) pos=rows.findIndex(r=>(r.nombre||'').toLowerCase()===p.nombre.toLowerCase()&&(r.sucursal||'').toLowerCase()===p.sucursal.toLowerCase())+1;
+   document.querySelector('#cwMyPos').textContent=pos?'Tu posición actual: #'+pos:'Tu posición aparecerá cuando comiences a jugar.';
+ }
+ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ function cwSendProgress(){
+   const p=cwProgress(); if(!p)return;
+   p.tipo='progreso';
+   fetch(CW_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)}).catch(()=>{});
+ }
+ setInterval(()=>{cwSendProgress();cwLoadRank()},8000);
+ setTimeout(cwLoadRank,1200);
+})();
+</script>
+
+</body>
+</html>
