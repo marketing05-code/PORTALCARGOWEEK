@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Adivina la Palabra · Cargoweek</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f3f5;color:#07172b;font-family:Arial,sans-serif}
+.wrap{max-width:900px;margin:auto;padding:24px 16px}
+.top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #53647a;padding-bottom:14px}
+.brand{font-weight:900;letter-spacing:.12em}
+.phase{font-size:12px;letter-spacing:2px;color:#8290a0}
+h1{text-align:center;font-size:clamp(30px,6vw,50px);margin:26px 0 6px}
+.sub{text-align:center;color:#526173;line-height:1.45}
+.selector{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.phaseCard{background:#fff;border:1px solid #8190a0;border-radius:18px;padding:18px;text-align:center;position:relative}
+.phaseCard.active{border:2px solid #f28c28;box-shadow:0 8px 24px rgba(7,23,43,.08)}
+.phaseCard.locked{opacity:.55}
+.phaseNum{font-size:13px;font-weight:900;letter-spacing:.14em;color:#6c7988}
+.phaseName{font-weight:900;font-size:20px;margin:8px 0}
+.status{font-size:12px;font-weight:800}
+.status.open{color:#15803d}.status.closed{color:#6b7280}
+.lock{font-size:25px;margin-bottom:6px}
+.card{margin-top:18px;background:#fff;border:1px solid #56667a;border-radius:22px;padding:22px}
+.form{display:grid;grid-template-columns:1fr 1fr auto;gap:10px}
+input,select,button{font:inherit;padding:13px;border-radius:11px}
+input,select{border:1px solid #657489;background:#e8edf2;color:#07172b}
+button{background:#f2f4f7;color:#07172b;font-weight:800;border:0;cursor:pointer}
+button.primary{background:#07172b;color:#fff}
+.game,.end{display:none}
+.level{text-align:center;font-weight:900;letter-spacing:.12em;color:#c46b16;margin:6px 0}
+.stats{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#526173;font-weight:700}
+.stats strong{color:#07172b}
+.progress{height:8px;background:#d6dde5;border-radius:20px;margin:16px 0;overflow:hidden}
+.bar{height:100%;background:#f28c28;width:10%;transition:.3s}
+.emoji{font-size:clamp(55px,12vw,100px);text-align:center;min-height:190px;display:grid;place-items:center;letter-spacing:8px}
+.answerRow{display:flex;gap:10px}
+.answerRow input{flex:1;text-align:center;font-size:18px;text-transform:uppercase}
+.feedback{text-align:center;min-height:45px;padding-top:14px;font-weight:800}
+.correct{color:#15803d}.wrong{color:#b91c1c}
+.next{display:none;margin:7px auto}
+.end{text-align:center}
+.score{font-size:55px;font-weight:900}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}
+.box{background:#e8edf2;border:1px solid #52627a;padding:15px;border-radius:13px}.box b{display:block;font-size:23px;margin-top:5px}
+.note{text-align:center;color:#657386;font-size:12px;margin-top:17px}
+#startMsg{text-align:center;font-weight:700;color:#b91c1c;margin-top:12px;min-height:20px}
+@media(max-width:650px){
+  .selector{grid-template-columns:1fr}
+  .form{grid-template-columns:1fr}
+  .answerRow{flex-direction:column}
+  .grid{grid-template-columns:1fr}
+}
+
+/* DEMOSTRACIÓN INTERACTIVA SIN VIDEO */
+.cwModal video{display:none!important}
+.cwDemoStage{height:210px;border-radius:12px;background:linear-gradient(180deg,#07182d,#0d2747);border:1px solid #2f5e8c;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;padding:18px;color:#fff}
+.cwDemoCard{width:min(520px,94%);text-align:center;animation:cwPop .35s ease}
+.cwDemoStep{font-size:13px;letter-spacing:.08em;font-weight:900;color:#66aaff;margin-bottom:12px}
+.cwDemoVisual{font-size:clamp(28px,7vw,52px);font-weight:900;min-height:70px;display:flex;align-items:center;justify-content:center;gap:8px}
+.cwDemoText{font-size:14px;color:#d6e5f5;margin-top:10px;line-height:1.35}
+.cwFakeInput{display:inline-block;background:#fff;color:#10233d;border-radius:8px;padding:10px 18px;font-size:18px;letter-spacing:.05em;border:2px solid #4e9cff}
+.cwDemoDots{display:flex;gap:6px;justify-content:center;margin-top:14px}.cwDemoDot{width:7px;height:7px;border-radius:50%;background:#49617c}.cwDemoDot.on{background:#4e9cff;transform:scale(1.25)}
+@keyframes cwPop{from{opacity:.15;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.cwRankName{color:#fff!important;font-weight:800!important}
+@media(max-width:600px){.cwDemoStage{height:190px;padding:12px}.cwDemoText{font-size:12px}.cwDemoStep{font-size:11px}}
+</style>
+
+<style id="cwExtrasCss">
+#cwDemoBtn{
+  min-height:44px;padding:10px 14px;border-radius:12px;border:1px solid #56a3ff;
+  background:#0a2347;color:#fff;font-weight:900;cursor:pointer
+}
+#cwDemoBtn{width:100%;margin:10px 0}
+#cwDemoOverlay{position:fixed;inset:0;z-index:9999;background:rgba(2,10,22,.9);display:none;align-items:center;justify-content:center;padding:16px}
+#cwDemoOverlay.show{display:flex}
+.cwModal{width:min(720px,100%);max-height:90vh;overflow:auto;background:#071d37;border:1px solid #49617c;border-radius:18px;padding:16px;color:#fff}
+.cwModal h2{margin:0 0 12px;color:#56a3ff}
+.cwModal video{display:block;width:100%;max-height:66vh;border-radius:12px;background:#000}
+.cwClose{width:100%;min-height:44px;margin-top:12px;border:0;border-radius:12px;background:#1266c3;color:#fff;font-weight:900;cursor:pointer}
+.cwNote{color:#c7d4e3;font-size:13px;margin:10px 0 0}
+#cwRankList{display:grid;gap:8px;margin-top:10px}
+.cwRankRow{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;padding:10px;border-radius:12px;background:#0a2347;border:1px solid #355675}
+.cwRankPos{font-weight:900;font-size:18px;text-align:center;color:#56a3ff}
+.cwRankName{font-weight:800;color:#fff!important}.cwRankSub{font-size:12px;color:#c7d4e3;margin-top:2px}
+.cwRankVal{text-align:right;font-weight:900}.cwLive{font-size:10px;color:#9fd0ff}
+#cwMyPos{margin:10px 0;padding:9px;border-radius:10px;background:#09223f;color:#fff;font-weight:800;text-align:center}
+@media(max-width:600px){.cwRankRow{grid-template-columns:30px 1fr;gap:7px}.cwRankVal{grid-column:2;font-size:11px}.cwLiveRank{padding:12px}.cwLiveRank h2{font-size:17px}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">CARGO</div>
+    <div style="text-align:right"><div class="phase">CARGOWEEK</div><b>RETO LOGÍSTICO</b></div>
+  </div>
+
+  <h1>ADIVINA LA PALABRA 🧩</h1>
+  <div class="sub">Solo la fase programada para hoy estará disponible. Las demás permanecerán bloqueadas.</div>
+
+  <div class="selector" id="phaseSelector"></div>
+
+  <section class="card" id="start">
+    <div class="level" id="levelTitle"></div>
+    <div class="sub" id="levelDesc" style="margin-bottom:18px"></div>
+    <div class="form">
+      <input id="name" placeholder="Nombre completo" maxlength="60">
+      <select id="branch">
+        <option value="">Selecciona tu sucursal</option>
+        <option>Estado de México</option><option>Buenos Aires</option><option>Victoria</option>
+        <option>Nuevo Repueblo</option><option>Leamington</option><option>Tampico</option>
+        <option>Ontario</option><option>Detroit</option><option>San Antonio</option><option>Laredo</option>
+      </select>
+      <button class="primary" id="startBtn" type="button">COMENZAR</button>
+    </div>
+    <div id="startMsg"></div>
+  </section>
+
+  <section class="card game" id="game">
+    <div class="stats">
+      <span>PREGUNTA <strong id="num"></strong></span>
+      <span>⏱ <strong id="timer"></strong></span>
+      <span>ERRORES <strong id="errors">0</strong></span>
+    </div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="emoji" id="emoji"></div>
+    <form id="answerForm" class="answerRow">
+      <input id="answer" placeholder="ESCRIBE TU RESPUESTA" autocomplete="off">
+      <button type="submit">COMPROBAR</button>
+    </form>
+    <div id="feedback" class="feedback"></div>
+    <button id="nextBtn" class="next" type="button">SIGUIENTE →</button>
+  </section>
+
+  <section class="card end" id="end">
+    <div class="phase" id="endPhase"></div>
+    <h2>¡RETO COMPLETADO! 🚚</h2>
+    <div class="score" id="score"></div>
+    <div class="grid">
+      <div class="box">ACIERTOS<b id="fh"></b></div>
+      <div class="box">ERRORES<b id="fe"></b></div>
+      <div class="box">TIEMPO<b id="ft"></b></div>
+    </div>
+    <p>Tu resultado ha sido registrado.</p>
+  </section>
+
+  <div class="note" id="note"></div>
+</div>
+
+<script>
+/* ============================================================
+   CAMBIA SOLO ESTE NÚMERO EN GITHUB:
+   1 = FASE 1
+   2 = FASE 2
+   3 = FASE 3
+   ============================================================ */
+const FASE_ACTIVA = 1;
+
+const SHEET_URL = "https://script.google.com/macros/s/AKfycby0Ru-FvWG1G8PNVGTLiXMWzaFz79mRBQoMke1keYWhcV5j0i-HNM8DB4_NQ2aZzCsc/exec";
+
+const FASES = {
+  1: {
+    nombre: "FASE 1",
+    nivel: "NIVEL INICIAL",
+    descripcion: "Descifra conceptos logísticos usando emojis. Solo tienes una oportunidad por participante.",
+    limite: 600000,
+    preguntas: [
+      ["🚚 📦","ENTREGA",["entrega","entregar"]],
+      ["❄️ 🚛","CARGA REFRIGERADA",["carga refrigerada","refrigerado","carga fria"]],
+      ["📦 🔍","INSPECCIÓN",["inspeccion","revision"]],
+      ["🏭 📦 🚚","DISTRIBUCIÓN",["distribucion"]],
+      ["📦 🏠","ALMACÉN",["almacen","bodega"]],
+      ["🚚 🇲🇽 ➡️ 🇺🇸","CRUCE FRONTERIZO",["cruce fronterizo","cruce de frontera","frontera"]],
+      ["📋 📦 📦","INVENTARIO",["inventario"]],
+      ["📍 🚚 🏁","DESTINO",["destino","entrega final"]],
+      ["🛒 📦 🚚","E-COMMERCE",["ecommerce","e-commerce","comercio electronico"]],
+      ["🚢 📦","CARGA MARÍTIMA",["carga maritima","transporte maritimo"]]
+    ]
+  },
+  2: {
+    nombre: "FASE 2",
+    nivel: "NIVEL INTERMEDIO",
+    descripcion: "Palabras de oficina y operación. Solo tienes una oportunidad por participante.",
+    limite: 600000,
+    preguntas: [
+      ["🖨️ 📄","IMPRESORA",["impresora"]],
+      ["🪪 👤","GAFETE",["gafete","credencial"]],
+      ["📎 📄","CLIP",["clip","sujetapapeles"]],
+      ["⌨️ 🖥️","TECLADO",["teclado"]],
+      ["🖱️ 🖥️","MOUSE",["mouse","raton"]],
+      ["📂 📄","ARCHIVO",["archivo","carpeta"]],
+      ["📅 ⏰","AGENDA",["agenda","calendario"]],
+      ["☎️ 🗣️","LLAMADA",["llamada","telefono"]],
+      ["📦 🏷️","ETIQUETA",["etiqueta","etiquetado"]],
+      ["🚚 📍","RASTREO",["rastreo","seguimiento","tracking"]]
+    ]
+  },
+  3: {
+    nombre: "FASE 3",
+    nivel: "RETO EXPERTO",
+    descripcion: "Último nivel: conceptos más retadores de operación y logística. Solo tienes una oportunidad por participante.",
+    limite: 480000,
+    preguntas: [
+      ["📦 🔢 📋","INVENTARIO",["inventario"]],
+      ["🚚 🛃 📄","ADUANA",["aduana"]],
+      ["❄️ 📦 🚚","CARGA REFRIGERADA",["carga refrigerada","refrigerado"]],
+      ["📍 🚚 📱","RASTREO",["rastreo","seguimiento","tracking"]],
+      ["🏭 📦 📋","ALMACÉN",["almacen","bodega"]],
+      ["📦 🔒 🏷️","SELLO DE SEGURIDAD",["sello de seguridad","sello"]],
+      ["🚚 ⏰ ⚠️","RETRASO",["retraso","demora"]],
+      ["🧾 📦 💰","FACTURA",["factura"]],
+      ["📋 ✅ 🚚","CHECKLIST",["checklist","lista de verificacion","lista de chequeo"]],
+      ["📦 🚚 🏁","ENTREGA FINAL",["entrega final","entrega"]]
+    ]
+  }
+};
+
+const $ = s => document.querySelector(s);
+const cfg = FASES[FASE_ACTIVA];
+let Q = cfg.preguntas;
+let LIMIT = cfg.limite;
+let i=0, err=0, hits=0, startAt=0, tick=null, locked=false;
+let respuestas=[];
+
+function norm(s){
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim();
+}
+function participantKey(name,branch){
+  return "adivinaPalabraUnificadoFase"+FASE_ACTIVA+"::"+norm(name)+"::"+norm(branch);
+}
+function fmt(ms){
+  const m=Math.floor(ms/60000), s=Math.floor((ms%60000)/1000), cs=Math.floor((ms%1000)/10);
+  return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+"."+String(cs).padStart(2,"0");
+}
+function elapsed(){ return Date.now()-startAt; }
+function remaining(){ return Math.max(0,LIMIT-elapsed()); }
+
+function paintSelector(){
+  $("#phaseSelector").innerHTML = [1,2,3].map(n=>{
+    const active=n===FASE_ACTIVA;
+    return `<div class="phaseCard ${active?"active":"locked"}">
+      <div class="lock">${active?"🔓":"🔒"}</div>
+      <div class="phaseNum">FASE ${n}</div>
+      <div class="phaseName">${FASES[n].nivel}</div>
+      <div class="status ${active?"open":"closed"}">${active?"DISPONIBLE":"BLOQUEADA"}</div>
+    </div>`;
+  }).join("");
+}
+
+function setup(){
+  paintSelector();
+  $("#levelTitle").textContent = cfg.nombre+" · "+cfg.nivel;
+  $("#levelDesc").textContent = cfg.descripcion;
+  $("#timer").textContent = fmt(LIMIT);
+  $("#note").textContent = "Tiempo máximo: "+Math.round(LIMIT/60000)+" minutos.";
+}
+setup();
+
+function render(){
+  const q=Q[i];
+  $("#num").textContent=(i+1)+"/"+Q.length;
+  $("#bar").style.width=((i+1)/Q.length*100)+"%";
+  $("#emoji").textContent=q[0];
+  $("#answer").value="";
+  $("#feedback").textContent="";
+  $("#feedback").className="feedback";
+  $("#answerForm").style.display="flex";
+  $("#nextBtn").style.display="none";
+  locked=false;
+  $("#answer").focus();
+}
+
+$("#startBtn").addEventListener("click",()=>{
+  const name=$("#name").value.trim();
+  const branch=$("#branch").value;
+  $("#startMsg").textContent="";
+
+  if(!name || !branch){
+    $("#startMsg").textContent="Escribe tu nombre y selecciona tu sucursal.";
+    return;
+  }
+
+  const key=participantKey(name,branch);
+  if(localStorage.getItem(key)==="1"){
+    $("#startMsg").textContent="Ya utilizaste tu única oportunidad para jugar la Fase "+FASE_ACTIVA+".";
+    return;
+  }
+
+  localStorage.setItem(key,"1");
+
+  $("#start").style.display="none";
+  $("#phaseSelector").style.display="none";
+  $("#game").style.display="block";
+  startAt=Date.now();
+
+  tick=setInterval(()=>{
+    const r=remaining();
+    $("#timer").textContent=fmt(r);
+    if(r<=0){
+      clearInterval(tick);
+      finish(true);
+    }
+  },40);
+
+  render();
+});
+
+$("#answerForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  if(locked) return;
+
+  const v=norm($("#answer").value);
+  if(!v) return;
+
+  const q=Q[i];
+  const respuestaEscrita=$("#answer").value.trim();
+  const ok=q[2].some(a=>norm(a)===v);
+  respuestas[i]={
+    pregunta:i+1,
+    emojis:q[0],
+    respuesta:respuestaEscrita,
+    correcta:ok ? "CORRECTA" : "INCORRECTA",
+    respuestaCorrecta:q[1]
+  };
+  locked=true;
+
+  if(ok){
+    hits++;
+    $("#feedback").textContent="✓ ¡CORRECTO! "+q[1];
+    $("#feedback").className="feedback correct";
+  }else{
+    err++;
+    $("#errors").textContent=err;
+    $("#feedback").textContent="✕ RESPUESTA: "+q[1];
+    $("#feedback").className="feedback wrong";
+  }
+
+  $("#answerForm").style.display="none";
+  $("#nextBtn").style.display="block";
+  $("#nextBtn").textContent=i===Q.length-1 ? "VER RESULTADO" : "SIGUIENTE →";
+});
+
+$("#nextBtn").addEventListener("click",()=>{
+  i++;
+  if(i<Q.length) render();
+  else finish(false);
+});
+
+function finish(timeout=false){
+  clearInterval(tick);
+  const total=Math.min(elapsed(),LIMIT);
+
+  $("#game").style.display="none";
+  $("#end").style.display="block";
+  $("#endPhase").textContent="FASE "+FASE_ACTIVA+" COMPLETADA";
+  $("#score").textContent=hits+"/"+Q.length;
+  if(timeout) $("#end h2").textContent="¡TIEMPO TERMINADO! ⏱️";
+
+  $("#fh").textContent=hits;
+  $("#fe").textContent=err;
+  $("#ft").textContent=fmt(total);
+
+  const payload={
+    nombre:$("#name").value.trim(),
+    sucursal:$("#branch").value,
+    aciertos:hits,
+    errores:err,
+    tiempo:fmt(total),
+    tiempoMs:total,
+    juego:"Adivina la Palabra",
+    fase:"Fase "+FASE_ACTIVA,
+    respuestas:respuestas.map(r=>r ? r.respuesta : ""),
+    resultados:respuestas.map(r=>r ? r.correcta : ""),
+    detalleRespuestas:respuestas
+  };
+
+  respuestas.forEach((r,idx)=>{
+    if(!r) return;
+    payload["respuesta"+(idx+1)] = r.respuesta;
+    payload["resultado"+(idx+1)] = r.correcta;
+    payload["correcta"+(idx+1)] = r.respuestaCorrecta;
+  });
+
+  fetch(SHEET_URL,{
+    method:"POST",
+    mode:"no-cors",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify(payload)
+  }).catch(()=>{});
+}
+</script>
+
+<script id="cwExtrasJs">
+(()=>{
+ const CW_URL="https://script.google.com/macros/s/AKfycby0Ru-FvWG1G8PNVGTLiXMWzaFz79mRBQoMke1keYWhcV5j0i-HNM8DB4_NQ2aZzCsc/exec";
+ function cwPhase(){
+   const m=(document.body.innerText.match(/FASE\s+(\d)/i)||[])[1];
+   return Number(m||1);
+ }
+ 
+function cwProgress(){
+ const name=(document.querySelector('#name')?.value||'').trim(), branch=document.querySelector('#branch')?.value||'';
+ if(!name||!branch) return null;
+ const num=(document.querySelector('#num')?.textContent||'1').match(/\d+/); const q=Number(num?.[0]||1);
+ const errs=Number(document.querySelector('#errors')?.textContent||0);
+ const form=document.querySelector('#answerForm');
+ const answered=Math.max(0,q-(form && form.style.display!=='none'?1:0));
+ const hits=Math.max(0,answered-errs);
+ return {nombre:name,sucursal:branch,fase:'Fase '+cwPhase(),valor:hits,detalle:hits+' aciertos · '+errs+' errores'};
+}
+
+ const start=document.getElementById('startBtn');
+ if(start){
+   const demoStates=[["👀 OBSERVA LOS EMOJIS", "🚚 + 📦 + 🏠", "Piensa qué palabra o concepto representan."], ["⌨️ ESCRIBE TU RESPUESTA", "🚚 📦 🏠", "<span class=\"cwFakeInput\">ENTREGA</span>"], ["✅ REVISA EL RESULTADO", "¡CORRECTO!", "Sigue con la siguiente pregunta hasta terminar."]];
+   let demoTimer=null, demoIndex=0;
+   const b=document.createElement('button'); b.type='button'; b.id='cwDemoBtn'; b.textContent='▶ VER CÓMO SE JUEGA';
+   start.insertAdjacentElement('beforebegin',b);
+   const o=document.createElement('div'); o.id='cwDemoOverlay';
+   o.innerHTML=`<div class="cwModal"><h2>🎬 ANTES DE EMPEZAR · CÓMO SE JUEGA</h2><div class="cwDemoStage"><div id="cwDemoContent" class="cwDemoCard"></div></div><p class="cwNote"><b>Mira esta demostración antes de iniciar.</b> Se reproduce sola y puedes verla cuantas veces quieras. No inicia el cronómetro, no consume oportunidades y no manda resultados.</p><button type="button" class="cwClose" id="cwDemoClose">ENTENDIDO · IR A JUGAR →</button></div>`;
+   document.body.appendChild(o);
+   const content=o.querySelector('#cwDemoContent');
+   function renderDemo(){
+     const d=demoStates[demoIndex];
+     content.className='cwDemoCard'; void content.offsetWidth;
+     content.innerHTML=`<div class="cwDemoStep">${d[0]}</div><div class="cwDemoVisual">${d[1]}</div><div class="cwDemoText">${d[2]}</div><div class="cwDemoDots">${demoStates.map((_,i)=>`<span class="cwDemoDot ${i===demoIndex?'on':''}"></span>`).join('')}</div>`;
+   }
+   function playDemo(){clearInterval(demoTimer);demoIndex=0;renderDemo();demoTimer=setInterval(()=>{demoIndex=(demoIndex+1)%demoStates.length;renderDemo()},2600)}
+   const close=()=>{clearInterval(demoTimer);o.classList.remove('show')};
+   b.addEventListener('click',()=>{o.classList.add('show');playDemo()});
+   o.querySelector('#cwDemoClose').addEventListener('click',close);
+   o.addEventListener('click',e=>{if(e.target===o)close()});
+   setTimeout(()=>{o.classList.add('show');playDemo()},350);
+   window.cwIntroShown=true;
+ }
+ const rankPanel=document.createElement('section'); rankPanel.id='cwLiveRank'; rankPanel.className='cwLiveRank';
+ rankPanel.innerHTML=`<div class="cwRankHead"><h2>🏆 RANKING EN VIVO</h2><div class="cwRankStatus"><span class="cwPulse"></span>ACTUALIZANDO</div></div><div id="cwMyPos" class="cwRankMyPos">Tu posición aparecerá cuando comiences a jugar.</div><div id="cwRankList" class="cwRankList"><div class="cwRankEmpty">Cargando ranking…</div></div><p class="cwNote">Se actualiza aproximadamente cada 8 segundos. “EN JUEGO” indica participantes que todavía no terminan.</p>`;
+ const footer=document.querySelector('.footer');
+ const wrap=document.querySelector('.wrap')||document.body;
+ if(footer&&footer.parentNode){footer.parentNode.insertBefore(rankPanel,footer)}else{wrap.appendChild(rankPanel)};
+
+ let cbn=0;
+ function cwLoadRank(){
+   const cb='cwRankCb'+(++cbn);
+   let done=false;
+   const cleanup=()=>{delete window[cb]; document.getElementById(cb)?.remove();};
+   const fail=()=>{if(done)return;done=true;const mp=document.querySelector('#cwMyPos'); if(mp) mp.textContent='No se pudo cargar el ranking. Revisa la conexión e inténtalo de nuevo.'; cleanup();};
+   window[cb]=(data)=>{
+     if(done)return; done=true;
+     try{cwRender(data)}finally{cleanup();}
+   };
+   const s=document.createElement('script'); s.id=cb; s.async=true;
+   s.src=CW_URL+'?action=ranking&fase='+encodeURIComponent(cwPhase())+'&callback='+cb+'&_='+Date.now();
+   s.onerror=fail;
+   document.body.appendChild(s);
+   setTimeout(fail,10000);
+ }
+ function cwRender(data){
+   const rows=(data&&data.ranking)||[], box=document.querySelector('#cwRankList');
+   box.innerHTML='';
+   rows.slice(0,8).forEach((r,i)=>{
+     const el=document.createElement('div'); el.className='cwRankRow';
+     el.innerHTML=`<div class="cwRankPos">${i+1}</div><div><div class="cwRankName">${esc(r.nombre||'Participante')}</div><div class="cwRankSub">${esc(r.sucursal||'')} ${r.estado==='EN JUEGO'?'<span class="cwLive">● EN JUEGO</span>':''}</div></div><div class="cwRankVal">${esc(r.detalle||String(r.valor??''))}</div>`;
+     box.appendChild(el);
+   });
+   if(!rows.length) box.innerHTML='<div class="cwRankEmpty">Todavía no hay participantes registrados en esta fase.</div>';
+   const p=cwProgress(); let pos=0;
+   if(p) pos=rows.findIndex(r=>(r.nombre||'').toLowerCase()===p.nombre.toLowerCase()&&(r.sucursal||'').toLowerCase()===p.sucursal.toLowerCase())+1;
+   document.querySelector('#cwMyPos').textContent=pos?'Tu posición actual: #'+pos:'Tu posición aparecerá cuando comiences a jugar.';
+ }
+ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ function cwSendProgress(){
+   const p=cwProgress(); if(!p)return;
+   p.tipo='progreso';
+   fetch(CW_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)}).catch(()=>{});
+ }
+ setInterval(()=>{cwSendProgress();cwLoadRank()},8000);
+ setTimeout(cwLoadRank,1200);
+})();
+</script>
+
+</body>
+</html>
