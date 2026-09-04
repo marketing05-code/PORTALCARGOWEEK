@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cargoweek: Misión Entrega Final · 3 Fases</title>
+<style>
+:root{
+  --navy:#071b33; --navy2:#0d2d52; --orange:#ff9b2f; --cyan:#4fd7ff;
+  --bg:#06111f; --panel:#0c213b; --text:#f4f8fc; --muted:#9fb2c8;
+  --good:#42d392; --bad:#ff6b6b; --line:#1c4167;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--text);
+  background:
+    radial-gradient(circle at 20% 0%,rgba(79,215,255,.12),transparent 32%),
+    radial-gradient(circle at 90% 10%,rgba(255,155,47,.10),transparent 26%),
+    linear-gradient(180deg,#06111f,#07192d 55%,#06111f);
+  min-height:100vh;
+}
+.wrap{max-width:980px;margin:auto;padding:18px}
+.hud{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;margin-bottom:14px}
+.brand{font-weight:950;letter-spacing:.16em;color:#fff}
+.pill{border:1px solid var(--line);background:rgba(12,33,59,.92);border-radius:14px;padding:10px 13px;font-weight:900}
+.card{background:linear-gradient(180deg,rgba(14,39,68,.96),rgba(8,28,50,.98));border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+h1{margin:0 0 10px;font-size:clamp(2rem,6vw,3.6rem);line-height:1;color:#fff}
+h2{margin-top:0;font-size:clamp(1.4rem,4vw,2rem)}
+p{line-height:1.5}.muted{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:7px}
+input,select,button{font:inherit}input,select{width:100%;padding:14px;border:1px solid #315477;border-radius:13px;background:#081a2f;color:#fff}
+button{border:0;border-radius:14px;padding:13px 16px;font-weight:900;cursor:pointer;transition:.18s transform,.18s filter,.18s border-color}
+button:active{transform:scale(.98)}
+.primary{background:linear-gradient(180deg,#ffad4d,#ff8a1f);color:#132033}
+.secondary{background:#14385e;color:#fff;border:1px solid #28577f}
+.status{min-height:28px;font-weight:900;margin-top:12px}.good{color:var(--good)}.bad{color:var(--bad)}
+.hidden{display:none!important}
+
+.hero-stage{position:relative;overflow:hidden;border-radius:18px;border:1px solid #1c466f;background:linear-gradient(180deg,#0b3154,#0a213b);margin:18px 0;padding:18px}
+.road{position:relative;height:96px;border-radius:14px;background:
+ repeating-linear-gradient(90deg,transparent 0 48px,#edf3f7 48px 72px,transparent 72px 120px),
+ linear-gradient(#293847,#1d2935);background-size:auto 4px,auto; background-repeat:repeat-x,no-repeat;background-position:center,center}
+.road:before,.road:after{content:"";position:absolute;left:0;right:0;height:5px;background:#f5f5f5;opacity:.7}.road:before{top:10px}.road:after{bottom:10px}
+.truck{position:absolute;left:2%;top:25px;font-size:2.9rem;z-index:3;transition:left .8s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 8px 6px rgba(0,0,0,.3))}
+.checkpoints{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.cp{text-align:center;color:#7890a8;font-weight:900;font-size:.78rem}.cp.done{color:var(--good)}.cp.active{color:var(--orange)}
+.cp-dot{width:12px;height:12px;border-radius:50%;background:#274765;margin:0 auto 5px}.cp.done .cp-dot{background:var(--good);box-shadow:0 0 14px rgba(66,211,146,.8)}.cp.active .cp-dot{background:var(--orange);box-shadow:0 0 14px rgba(255,155,47,.8)}
+
+.mission-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
+.missionlabel{font-size:.82rem;font-weight:950;letter-spacing:.13em;color:var(--cyan)}
+.progress{height:12px;background:#061528;border-radius:999px;overflow:hidden;border:1px solid #173d61}
+.bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--orange));transition:width .55s ease}
+
+.gamepanel{position:relative;overflow:hidden}
+.gamepanel.success{animation:successFlash .45s ease}.gamepanel.fail{animation:failFlash .35s ease}
+@keyframes successFlash{50%{box-shadow:inset 0 0 0 999px rgba(66,211,146,.10)}}
+@keyframes failFlash{50%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.options{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin-top:18px}
+.option{min-height:64px;background:#0a2038;color:#fff;border:1px solid #244d73;text-align:left}
+.option:hover{filter:brightness(1.12);border-color:#4c86b8}
+.codebox{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}.chip{background:#081a2f;border:1px solid #244d73;padding:12px 15px;border-radius:12px;font-weight:900}
+.route{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.route button{min-height:95px;font-size:1.02rem}
+.scene{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.scene button{min-height:125px;background:#0a2038;border:1px solid #244d73;color:#fff;font-size:2rem}.scene small{font-size:.85rem;color:#cbd6e1}
+.combo{position:absolute;right:18px;top:18px;font-weight:950;color:var(--orange);font-size:1.1rem}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,10,18,.90);z-index:20;border-radius:24px}
+.count{font-size:clamp(4rem,18vw,8rem);font-weight:950;color:#fff;text-shadow:0 0 30px rgba(79,215,255,.6);animation:pop .55s ease}
+@keyframes pop{from{transform:scale(.45);opacity:0}to{transform:scale(1);opacity:1}}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 11px;border-radius:999px;background:#102d4d;color:#cbe8ff;font-weight:850;margin-bottom:12px}
+.end-score{font-size:clamp(2.4rem,8vw,4.7rem);font-weight:950;color:var(--orange);margin:8px 0}
+.stars{font-size:2rem;letter-spacing:.15em;margin:10px 0}
+@media(max-width:640px){.grid2,.options,.route,.scene{grid-template-columns:1fr}.hud{grid-template-columns:1fr auto}.hud .pill:last-child{grid-column:1/-1}.card{padding:16px}.wrap{padding:10px}.road{height:85px}.truck{font-size:2.5rem}}
+
+.phase-selector{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 16px}
+.phase-card{border:1px solid var(--line);background:rgba(12,33,59,.9);border-radius:15px;padding:12px;text-align:center}
+.phase-card.active{border:2px solid var(--orange);box-shadow:0 0 0 2px rgba(255,155,47,.08)}
+.phase-card.locked{opacity:.45}
+.phase-card .lock{font-size:21px}
+.phase-card b{display:block;margin:5px 0 2px}
+.phase-card small{font-size:.72rem;color:var(--muted);font-weight:900;letter-spacing:.08em}
+@media(max-width:650px){.phase-selector{grid-template-columns:repeat(3,1fr);gap:5px}.phase-card{padding:8px 3px}.phase-card b{font-size:.72rem}.phase-card small{font-size:.56rem}}
+
+/* DEMOSTRACIÓN INTERACTIVA SIN VIDEO */
+.cwModal video{display:none!important}
+.cwDemoStage{height:210px;border-radius:12px;background:linear-gradient(180deg,#07182d,#0d2747);border:1px solid #2f5e8c;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;padding:18px;color:#fff}
+.cwDemoCard{width:min(520px,94%);text-align:center;animation:cwPop .35s ease}
+.cwDemoStep{font-size:13px;letter-spacing:.08em;font-weight:900;color:#66aaff;margin-bottom:12px}
+.cwDemoVisual{font-size:clamp(28px,7vw,52px);font-weight:900;min-height:70px;display:flex;align-items:center;justify-content:center;gap:8px}
+.cwDemoText{font-size:14px;color:#d6e5f5;margin-top:10px;line-height:1.35}
+.cwFakeInput{display:inline-block;background:#fff;color:#10233d;border-radius:8px;padding:10px 18px;font-size:18px;letter-spacing:.05em;border:2px solid #4e9cff}
+.cwDemoDots{display:flex;gap:6px;justify-content:center;margin-top:14px}.cwDemoDot{width:7px;height:7px;border-radius:50%;background:#49617c}.cwDemoDot.on{background:#4e9cff;transform:scale(1.25)}
+@keyframes cwPop{from{opacity:.15;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.cwRankName{color:#fff!important;font-weight:800!important}
+@media(max-width:600px){.cwDemoStage{height:190px;padding:12px}.cwDemoText{font-size:12px}.cwDemoStep{font-size:11px}}
+</style>
+
+<style id="cwExtrasCss">
+#cwDemoBtn{
+  min-height:44px;padding:10px 14px;border-radius:12px;border:1px solid #56a3ff;
+  background:#0a2347;color:#fff;font-weight:900;cursor:pointer
+}
+#cwDemoBtn{width:100%;margin:10px 0}
+#cwDemoOverlay{position:fixed;inset:0;z-index:9999;background:rgba(2,10,22,.9);display:none;align-items:center;justify-content:center;padding:16px}
+#cwDemoOverlay.show{display:flex}
+.cwModal{width:min(720px,100%);max-height:90vh;overflow:auto;background:#071d37;border:1px solid #49617c;border-radius:18px;padding:16px;color:#fff}
+.cwModal h2{margin:0 0 12px;color:#56a3ff}
+.cwModal video{display:block;width:100%;max-height:66vh;border-radius:12px;background:#000}
+.cwClose{width:100%;min-height:44px;margin-top:12px;border:0;border-radius:12px;background:#1266c3;color:#fff;font-weight:900;cursor:pointer}
+.cwNote{color:#c7d4e3;font-size:13px;margin:10px 0 0}
+#cwRankList{display:grid;gap:8px;margin-top:10px}
+.cwRankRow{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;padding:10px;border-radius:12px;background:#0a2347;border:1px solid #355675}
+.cwRankPos{font-weight:900;font-size:18px;text-align:center;color:#56a3ff}
+.cwRankName{font-weight:800;color:#fff!important}.cwRankSub{font-size:12px;color:#c7d4e3;margin-top:2px}
+.cwRankVal{text-align:right;font-weight:900}.cwLive{font-size:10px;color:#9fd0ff}
+#cwMyPos{margin:10px 0;padding:9px;border-radius:10px;background:#09223f;color:#fff;font-weight:800;text-align:center}
+@media(max-width:600px){.cwRankRow{grid-template-columns:30px 1fr;gap:7px}.cwRankVal{grid-column:2;font-size:11px}.cwLiveRank{padding:12px}.cwLiveRank h2{font-size:17px}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="hud">
+    <div class="brand">CARGOWEEK // CONTROL DE MISIÓN</div>
+    <div class="pill">⏱ <span id="timer">10:00</span></div>
+    <div class="pill">⭐ Puntos: <span id="score">0</span></div>
+  </div>
+
+  <section class="card" id="start">
+    <div class="phase-selector" id="phaseSelector"></div>
+    <span class="badge" id="phaseBadge">🚨 OPERACIÓN PRIORITARIA</span>
+    <h1 id="heroTitle">Misión:<br>Entrega Final</h1>
+    <p>La carga quedó detenida antes de llegar a destino. Supera las pruebas, desbloquea la ruta y completa la entrega antes de que el reloj llegue a cero.</p>
+    <div class="hero-stage">
+      <div class="road"><div class="truck">🚚</div></div>
+      <div class="checkpoints">
+        <div class="cp active"><div class="cp-dot"></div>Código</div><div class="cp"><div class="cp-dot"></div>Carga</div>
+        <div class="cp"><div class="cp-dot"></div>Ruta</div><div class="cp"><div class="cp-dot"></div>Inspección</div>
+        <div class="cp"><div class="cp-dot"></div>Entrega</div>
+      </div>
+    </div>
+    <div class="grid2">
+      <label class="field">Nombre<input id="name" placeholder="Tu nombre"></label>
+      <label class="field">Sucursal<select id="branch">
+        <option value="">Selecciona</option><option>Estado de México</option><option>Buenos Aires</option><option>Victoria</option>
+        <option>Nuevo Repueblo</option><option>Leamington</option><option>Tampico</option><option>Ontario</option>
+        <option>Detroit</option><option>San Antonio</option><option>Laredo</option>
+      </select></label>
+    </div>
+    <div id="startMsg" class="status bad"></div>
+    <p class="muted" style="margin-top:12px"><b>⚠️ UNA OPORTUNIDAD:</b> solo podrás jugar esta fase una vez en este dispositivo.</p><button class="primary" id="startBtn">INICIAR OPERACIÓN</button>
+  </section>
+
+  <section class="card gamepanel hidden" id="game">
+    <div class="mission-head"><div><div class="missionlabel" id="missionLabel">MISIÓN 1/5</div></div><div id="combo" class="combo"></div></div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="hero-stage">
+      <div class="road"><div class="truck" id="gameTruck">🚚</div></div>
+      <div class="checkpoints" id="gameCps"></div>
+    </div>
+    <div id="content"></div>
+    <div id="status" class="status" aria-live="polite"></div>
+    <div class="overlay hidden" id="countdown"><div class="count" id="countText">3</div></div>
+  </section>
+
+  <section class="card hidden" id="end">
+    <span class="badge" id="endBadge">🏁 ENTREGA CONFIRMADA</span>
+    <h1 id="endTitle">Misión cumplida</h1>
+    <div class="end-score" id="endScore">0</div>
+    <div class="stars" id="stars">⭐⭐⭐</div>
+    <p id="summary"></p>
+    <button class="secondary" id="restart">JUGAR DE NUEVO</button>
+  </section>
+</div>
+
+<script>
+(() => {
+/* ============================================================
+   CAMBIA SOLO ESTE NÚMERO EN GITHUB:
+   1 = FASE 1
+   2 = FASE 2
+   3 = FASE 3
+   ============================================================ */
+const FASE_ACTIVA = 1;
+
+const FASES = {
+  1:{limite:10*60*1000,titulo:"Misión:<br>Entrega Final",badge:"FASE 1 · NIVEL INICIAL",correctBase:100,comboBonus:25,wrongPenalty:20},
+  2:{limite:8*60*1000,titulo:"Misión:<br>Entrega Final · Fase 2",badge:"FASE 2 · NIVEL INTERMEDIO",correctBase:120,comboBonus:30,wrongPenalty:30},
+  3:{limite:7*60*1000,titulo:"Misión:<br>Entrega Final · Fase 3",badge:"FASE 3 · NIVEL EXPERTO",correctBase:140,comboBonus:35,wrongPenalty:35}
+};
+const CFG=FASES[FASE_ACTIVA];
+
+const $=s=>document.querySelector(s);
+const start=$("#start"),game=$("#game"),end=$("#end"),content=$("#content"),status=$("#status");
+let idx=0,errors=0,completed=0,score=0,combo=0,startMs=0,timerId=null,ended=false;
+const LIMIT=CFG.limite, names=["Código","Carga","Ruta","Inspección","Entrega"];
+
+function tone(freq=500,dur=.08){
+  try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const c=new A(),o=c.createOscillator(),g=c.createGain();o.frequency.value=freq;o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(.05,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);o.start();o.stop(c.currentTime+dur);}catch(e){}
+}
+function fmt(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1000),m=Math.floor(s/60),r=s%60;return String(m).padStart(2,"0")+":"+String(r).padStart(2,"0")}
+function updateHud(){ $("#score").textContent=score; $("#combo").textContent=combo>=2?`🔥 COMBO x${combo}`:""; }
+function tick(){const used=Date.now()-startMs,left=LIMIT-used;$("#timer").textContent=fmt(left);if(left<=0)finish(true)}
+function setStatus(msg,good){status.textContent=msg;status.className="status "+(good?"good":"bad")}
+function roadUI(){
+  $("#gameTruck").style.left=(2+idx*22)+"%";
+  $("#bar").style.width=(idx/5*100)+"%";
+  $("#gameCps").innerHTML=names.map((n,i)=>`<div class="cp ${i<idx?"done":i===idx?"active":""}"><div class="cp-dot"></div>${n}</div>`).join("");
+}
+function flash(type){game.classList.remove("success","fail");void game.offsetWidth;game.classList.add(type);setTimeout(()=>game.classList.remove(type),500)}
+function correct(){
+  completed++;combo++;const pts=CFG.correctBase+(combo-1)*CFG.comboBonus;score+=pts;tone(760,.11);flash("success");setStatus(`+${pts} puntos · Ruta desbloqueada`,true);updateHud();
+  setTimeout(()=>{idx++;render()},650)
+}
+function wrong(msg="Respuesta incorrecta. Intenta otra vez."){
+  errors++;combo=0;score=Math.max(0,score-CFG.wrongPenalty);tone(190,.12);flash("fail");setStatus(`${msg}  -${CFG.wrongPenalty} puntos`,false);updateHud()
+}
+function optionButtons(items,answer){
+  return `<div class="options">${items.map((x,i)=>`<button class="option" data-i="${i}">${x}</button>`).join("")}</div>`;
+}
+const missionSets={
+1:[
+
+()=>{content.innerHTML=`<h2>🔐 Terminal bloqueada</h2><p>Para encender el sistema resuelve el código: si 📦 + 📦 = 8 y 🚚 + 📦 = 10, ¿cuánto vale 🚚 + 🚚?</p><div class="codebox"><span class="chip">📦 + 📦 = 8</span><span class="chip">🚚 + 📦 = 10</span></div>${optionButtons(["10","12","14","16"],1)}`;wire(1)},
+()=>{content.innerHTML=`<h2>❄️ Selecciona la unidad correcta</h2><p>La mercancía debe mantenerse entre 2 °C y 8 °C durante todo el trayecto.</p>${optionButtons(["📦 Carga general","❄️ Carga refrigerada","🏋️ Carga pesada","🥂 Carga frágil"],1)}`;wire(1)},
+()=>{content.innerHTML=`<h2>🗺️ Navegación activada</h2><p>La carga sale de México, cruza Estados Unidos y termina en Canadá. Elige la ruta correcta.</p><div class="route"><button class="option" data-i="0">🇲🇽 → 🇨🇦 → 🇺🇸</button><button class="option" data-i="1">🇲🇽 → 🇺🇸 → 🇨🇦</button><button class="option" data-i="2">🇺🇸 → 🇲🇽 → 🇨🇦</button></div>`;wire(1)},
+()=>{content.innerHTML=`<h2>🔎 Inspección de almacén</h2><p>Hay una situación peligrosa. Encuéntrala antes de liberar la carga.</p><div class="scene"><button data-i="0">📦<br><small>Etiquetado correcto</small></button><button data-i="1">🏋️<br><small>Carga pesada sobre frágil</small></button><button data-i="2">❄️<br><small>Refrigeración activa</small></button></div>`;wire(1)},
+()=>{let step=0;const qs=[["🚨 Última milla: ¿qué priorizas para una entrega urgente?",["Ruta más directa","Esperar al día siguiente","Moverla a almacén"],0],["🛃 Documentación incompleta antes del cruce:",["Cruzar de todos modos","Corregir antes de avanzar","Ignorar documento"],1],["🏁 La carga llegó correctamente:",["Confirmar entrega","Regresarla","Cambiar etiquetas"],0]];
+ function draw(){const [q,ops,a]=qs[step];content.innerHTML=`<h2>⚡ Secuencia final ${step+1}/3</h2><p>${q}</p>${optionButtons(ops,a)}`;content.querySelectorAll("[data-i]").forEach(b=>b.addEventListener("click",()=>{if(+b.dataset.i===a){score+=50;combo++;tone(830,.07);step++;updateHud();setStatus("+50 · Decisión correcta",true);if(step===qs.length)setTimeout(correct,350);else setTimeout(draw,400)}else wrong()}))}
+ draw()}
+],
+2:[
+
+()=>{content.innerHTML=`<h2>🔐 Código de seguridad</h2><p>Si 📦 = 4, 🚚 = 6 y 🛃 = 3, ¿cuánto vale 🚚 + 📦 × 🛃?</p><div class="codebox"><span class="chip">📦 = 4</span><span class="chip">🚚 = 6</span><span class="chip">🛃 = 3</span></div>${optionButtons(["18","30","24","42"],0)}`;wire(0)},
+()=>{content.innerHTML=`<h2>📦 Prioridad de carga</h2><p>Debes transportar medicamentos que requieren temperatura controlada y entrega urgente. ¿Qué opción es la más adecuada?</p>${optionButtons(["Carga general estándar","Unidad refrigerada con prioridad","Carga pesada","Esperar consolidación"],1)}`;wire(1)},
+()=>{content.innerHTML=`<h2>🗺️ Ruta internacional</h2><p>La carga sale de Monterrey, debe pasar por Laredo y terminar en San Antonio. Elige el orden correcto.</p><div class="route"><button class="option" data-i="0">Monterrey → San Antonio → Laredo</button><button class="option" data-i="1">Laredo → Monterrey → San Antonio</button><button class="option" data-i="2">Monterrey → Laredo → San Antonio</button></div>`;wire(2)},
+()=>{content.innerHTML=`<h2>🔎 Inspección de carga</h2><p>Encuentra la situación que requiere detener la salida.</p><div class="scene"><button data-i="0">🏷️<br><small>Etiquetas legibles</small></button><button data-i="1">🧊<br><small>Temperatura fuera de rango</small></button><button data-i="2">📋<br><small>Documentos completos</small></button></div>`;wire(1)},
+()=>{let step=0;const qs=[["🚧 La ruta principal se bloqueó:",["Esperar sin avisar","Activar ruta alterna autorizada","Cancelar la entrega"],1],["🛃 En frontera detectan un dato incorrecto:",["Corregir documentación","Continuar de todos modos","Ignorar la observación"],0],["📍 El cliente cambia la ventana de entrega:",["Confirmar nueva ventana y ajustar ruta","Llegar a cualquier hora","Regresar la carga"],0],["🏁 Llegaste al destino:",["Cerrar operación sin evidencia","Confirmar entrega y registrar evidencia","Dejar la carga sin aviso"],1]];
+function draw(){const [q,ops,a]=qs[step];content.innerHTML=`<h2>⚡ Secuencia final ${step+1}/4</h2><p>${q}</p>${optionButtons(ops,a)}`;content.querySelectorAll("[data-i]").forEach(b=>b.addEventListener("click",()=>{if(+b.dataset.i===a){score+=60;combo++;tone(830,.07);step++;updateHud();setStatus("+60 · Decisión correcta",true);if(step===qs.length)setTimeout(correct,350);else setTimeout(draw,400)}else wrong()}))}draw()}
+],
+3:[
+
+()=>{content.innerHTML=`<h2>🔐 Código maestro</h2><p>Si 📦 + 📦 = 10, 🚚 + 📦 = 13 y 🛃 = 🚚 − 2, ¿cuánto vale 🚚 × 🛃?</p><div class="codebox"><span class="chip">📦 + 📦 = 10</span><span class="chip">🚚 + 📦 = 13</span><span class="chip">🛃 = 🚚 − 2</span></div>${optionButtons(["36","48","30","40"],1)}`;wire(1)},
+()=>{content.innerHTML=`<h2>❄️ Carga crítica</h2><p>Llevas producto refrigerado, frágil y con ventana de entrega limitada. ¿Qué decisión protege mejor la operación?</p>${optionButtons(["Usar cualquier unidad disponible","Unidad refrigerada, sujeción especial y salida prioritaria","Consolidar con carga pesada","Esperar al siguiente día"],1)}`;wire(1)},
+()=>{content.innerHTML=`<h2>🗺️ Cruce y destino</h2><p>La carga sale de México, cruza por Texas y termina en Ontario. ¿Cuál secuencia tiene sentido?</p><div class="route"><button class="option" data-i="0">México → Ontario → Texas</button><button class="option" data-i="1">Texas → México → Ontario</button><button class="option" data-i="2">México → Texas → Ontario</button></div>`;wire(2)},
+()=>{content.innerHTML=`<h2>🔎 Inspección crítica</h2><p>Una de estas condiciones obliga a detener inmediatamente la operación. Identifícala.</p><div class="scene"><button data-i="0">📋<br><small>Documentos coinciden con la carga</small></button><button data-i="1">🚨<br><small>Sello de seguridad alterado</small></button><button data-i="2">📍<br><small>Destino confirmado</small></button></div>`;wire(1)},
+()=>{let step=0;const qs=[["🛃 Aduana solicita revisión adicional:",["Enviar información requerida y esperar liberación","Intentar salir por otra ruta","Ignorar la solicitud"],0],["🌡️ La temperatura comienza a subir:",["Continuar y revisar al final","Detener, verificar equipo y proteger la carga","Apagar el monitoreo"],1],["🚧 Hay cierre en la ruta programada:",["Improvisar sin validar","Activar una ruta alterna autorizada y notificar","Esperar sin hacer nada"],1],["📞 El destinatario no responde:",["Abandonar la carga","Seguir el protocolo y documentar intentos de contacto","Marcar entrega completada"],1],["🏁 Entrega realizada sin daños:",["Registrar evidencia y cerrar la operación","Retirar etiquetas antes de confirmar","No registrar nada"],0]];
+function draw(){const [q,ops,a]=qs[step];content.innerHTML=`<h2>🔥 Secuencia crítica ${step+1}/5</h2><p>${q}</p>${optionButtons(ops,a)}`;content.querySelectorAll("[data-i]").forEach(b=>b.addEventListener("click",()=>{if(+b.dataset.i===a){score+=75;combo++;tone(860,.07);step++;updateHud();setStatus("+75 · Decisión correcta",true);if(step===qs.length)setTimeout(correct,350);else setTimeout(draw,400)}else wrong()}))}draw()}
+]
+};
+const missions=missionSets[FASE_ACTIVA];
+function wire(answer){content.querySelectorAll("[data-i]").forEach(b=>b.addEventListener("click",()=>+b.dataset.i===answer?correct():wrong()))}
+function render(){if(ended)return;status.textContent="";$("#missionLabel").textContent=`MISIÓN ${Math.min(idx+1,5)}/5`;roadUI();if(idx>=5){finish(false);return}missions[idx]()}
+function countdown(){
+ const ov=$("#countdown"),ct=$("#countText");ov.classList.remove("hidden");let n=3;ct.textContent=n;tone(440,.08);
+ const id=setInterval(()=>{n--;if(n>0){ct.textContent=n;tone(440,.08)}else if(n===0){ct.textContent="¡YA!";tone(900,.12)}else{clearInterval(id);ov.classList.add("hidden");startMs=Date.now();timerId=setInterval(tick,250);tick();render()}},650)
+}
+function finish(timeout){
+ if(ended)return;ended=true;clearInterval(timerId);const used=Math.min(LIMIT,Date.now()-startMs);
+ game.classList.add("hidden");end.classList.remove("hidden");
+ if(!timeout){score+=Math.max(0,Math.floor((LIMIT-used)/1000));}
+ $("#endTitle").textContent=timeout?"Tiempo agotado":"¡Misión cumplida!";
+ $("#endBadge").textContent=timeout?"⏱ OPERACIÓN TERMINADA":"🏁 ENTREGA CONFIRMADA";
+ $("#endScore").textContent=score+" PTS";
+ const starCount=completed===5&&errors<=1?3:completed>=4?2:1;$("#stars").textContent="⭐".repeat(starCount)+"☆".repeat(3-starCount);
+ $("#summary").textContent=`${completed}/5 misiones · ${errors} errores · Tiempo usado: ${fmt(used)}`;
+
+ const datos={
+   nombre: $("#name").value.trim(),
+   sucursal: $("#branch").value,
+   misiones: completed,
+   errores: errors,
+   tiempo: fmt(used),
+   puntaje: score
+ };
+
+ fetch("https://script.google.com/macros/s/AKfycbzDqTX0T3tGV9KQ-dHFgP_cvJFuRm4IcwoLnZwIMYP9S0W8ZdNFF-93ED_RyfY_NOOX/exec", {
+   method: "POST",
+   mode: "no-cors",
+   headers: {"Content-Type":"text/plain"},
+   body: JSON.stringify(datos)
+ }).catch(()=>{});
+}
+$("#startBtn").addEventListener("click",()=>{
+  const nombre=$("#name").value.trim(), sucursal=$("#branch").value;
+  if(!nombre||!sucursal){
+    $("#startMsg").textContent="Escribe tu nombre y selecciona tu sucursal.";
+    return;
+  }
+  const clean=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
+  const key="misionEntregaFinalUnificadoFase"+FASE_ACTIVA+"::"+clean(nombre)+"::"+clean(sucursal);
+  if(localStorage.getItem(key)==="1"){
+    $("#startMsg").textContent="Ya utilizaste tu única oportunidad para jugar la Fase "+FASE_ACTIVA+".";
+    return;
+  }
+  localStorage.setItem(key,"1");
+  start.classList.add("hidden");
+  game.classList.remove("hidden");
+  roadUI();
+  countdown();
+});
+$("#restart").addEventListener("click",()=>location.reload());
+})();
+</script>
+
+<script id="cwExtrasJs">
+(()=>{
+ const CW_URL="https://script.google.com/macros/s/AKfycbzDqTX0T3tGV9KQ-dHFgP_cvJFuRm4IcwoLnZwIMYP9S0W8ZdNFF-93ED_RyfY_NOOX/exec";
+ function cwPhase(){
+   const m=(document.body.innerText.match(/FASE\s+(\d)/i)||[])[1];
+   return Number(m||1);
+ }
+ 
+function cwProgress(){
+ const name=(document.querySelector('#name')?.value||'').trim(), branch=document.querySelector('#branch')?.value||'';
+ if(!name||!branch) return null;
+ const pts=Number((document.querySelector('#score')?.textContent||'0').replace(/\D/g,''))||0;
+ const m=(document.querySelector('#missionLabel')?.textContent||'').match(/\d+/); const mission=Number(m?.[0]||1);
+ return {nombre:name,sucursal:branch,fase:'Fase '+cwPhase(),valor:pts,detalle:pts+' pts · misión '+mission+'/5'};
+}
+
+ const start=document.getElementById('startBtn');
+ if(start){
+   const demoStates=[["🎯 REVISA TU MISIÓN", "🚚  📦  🏁", "Completa el objetivo indicado en pantalla."], ["🕹️ MUEVE EL CAMIÓN", "🚚 ➜ 📦 ➜ 🏁", "Recoge y entrega siguiendo la ruta correcta."], ["✅ COMPLETA LA ENTREGA", "ENTREGA COMPLETADA", "Hazlo rápido para conseguir un mejor resultado."]];
+   let demoTimer=null, demoIndex=0;
+   const b=document.createElement('button'); b.type='button'; b.id='cwDemoBtn'; b.textContent='▶ VER CÓMO SE JUEGA';
+   start.insertAdjacentElement('beforebegin',b);
+   const o=document.createElement('div'); o.id='cwDemoOverlay';
+   o.innerHTML=`<div class="cwModal"><h2>🎬 ANTES DE EMPEZAR · CÓMO SE JUEGA</h2><div class="cwDemoStage"><div id="cwDemoContent" class="cwDemoCard"></div></div><p class="cwNote"><b>Mira esta demostración antes de iniciar.</b> Se reproduce sola y puedes verla cuantas veces quieras. No inicia el cronómetro, no consume oportunidades y no manda resultados.</p><button type="button" class="cwClose" id="cwDemoClose">ENTENDIDO · IR A JUGAR →</button></div>`;
+   document.body.appendChild(o);
+   const content=o.querySelector('#cwDemoContent');
+   function renderDemo(){
+     const d=demoStates[demoIndex];
+     content.className='cwDemoCard'; void content.offsetWidth;
+     content.innerHTML=`<div class="cwDemoStep">${d[0]}</div><div class="cwDemoVisual">${d[1]}</div><div class="cwDemoText">${d[2]}</div><div class="cwDemoDots">${demoStates.map((_,i)=>`<span class="cwDemoDot ${i===demoIndex?'on':''}"></span>`).join('')}</div>`;
+   }
+   function playDemo(){clearInterval(demoTimer);demoIndex=0;renderDemo();demoTimer=setInterval(()=>{demoIndex=(demoIndex+1)%demoStates.length;renderDemo()},2600)}
+   const close=()=>{clearInterval(demoTimer);o.classList.remove('show')};
+   b.addEventListener('click',()=>{o.classList.add('show');playDemo()});
+   o.querySelector('#cwDemoClose').addEventListener('click',close);
+   o.addEventListener('click',e=>{if(e.target===o)close()});
+   setTimeout(()=>{o.classList.add('show');playDemo()},350);
+   window.cwIntroShown=true;
+ }
+ const rankPanel=document.createElement('section'); rankPanel.id='cwLiveRank'; rankPanel.className='cwLiveRank';
+ rankPanel.innerHTML=`<div class="cwRankHead"><h2>🏆 RANKING EN VIVO</h2><div class="cwRankStatus"><span class="cwPulse"></span>ACTUALIZANDO</div></div><div id="cwMyPos" class="cwRankMyPos">Tu posición aparecerá cuando comiences a jugar.</div><div id="cwRankList" class="cwRankList"><div class="cwRankEmpty">Cargando ranking…</div></div><p class="cwNote">Se actualiza aproximadamente cada 8 segundos. “EN JUEGO” indica participantes que todavía no terminan.</p>`;
+ const footer=document.querySelector('.footer');
+ const wrap=document.querySelector('.wrap')||document.body;
+ if(footer&&footer.parentNode){footer.parentNode.insertBefore(rankPanel,footer)}else{wrap.appendChild(rankPanel)};
+
+ let cbn=0;
+ function cwLoadRank(){
+   const cb='cwRankCb'+(++cbn);
+   window[cb]=(data)=>{
+     try{cwRender(data)}finally{delete window[cb]; document.getElementById(cb)?.remove();}
+   };
+   const s=document.createElement('script'); s.id=cb;
+   s.src=CW_URL+'?action=ranking&fase='+encodeURIComponent('Fase '+cwPhase())+'&callback='+cb+'&_='+Date.now();
+   s.onerror=()=>{const mp=document.querySelector('#cwMyPos'); if(mp) mp.textContent='No se pudo cargar el ranking. Revisa que Apps Script esté actualizado.'; delete window[cb]; s.remove();};
+   document.body.appendChild(s);
+ }
+ function cwRender(data){
+   const rows=(data&&data.ranking)||[], box=document.querySelector('#cwRankList');
+   box.innerHTML='';
+   rows.slice(0,8).forEach((r,i)=>{
+     const el=document.createElement('div'); el.className='cwRankRow';
+     el.innerHTML=`<div class="cwRankPos">${i+1}</div><div><div class="cwRankName">${esc(r.nombre||'Participante')}</div><div class="cwRankSub">${esc(r.sucursal||'')} ${r.estado==='EN JUEGO'?'<span class="cwLive">● EN JUEGO</span>':''}</div></div><div class="cwRankVal">${esc(r.detalle||String(r.valor??''))}</div>`;
+     box.appendChild(el);
+   });
+   if(!rows.length) box.innerHTML='<div class="cwRankEmpty">Todavía no hay participantes registrados en esta fase.</div>';
+   const p=cwProgress(); let pos=0;
+   if(p) pos=rows.findIndex(r=>(r.nombre||'').toLowerCase()===p.nombre.toLowerCase()&&(r.sucursal||'').toLowerCase()===p.sucursal.toLowerCase())+1;
+   document.querySelector('#cwMyPos').textContent=pos?'Tu posición actual: #'+pos:'Tu posición aparecerá cuando comiences a jugar.';
+ }
+ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ function cwSendProgress(){
+   const p=cwProgress(); if(!p)return;
+   p.tipo='progreso';
+   fetch(CW_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)}).catch(()=>{});
+ }
+ setInterval(()=>{cwSendProgress();cwLoadRank()},8000);
+ setTimeout(cwLoadRank,1200);
+})();
+</script>
+
+</body>
+</html>
