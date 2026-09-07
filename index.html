@@ -114,6 +114,7 @@ const NOMBRES_DIA = ["DOMINGO","LUNES","MARTES","MIÉRCOLES","JUEVES","VIERNES",
 /* Cambia a true solo cuando quieras revisar todos los juegos.
    Para el evento déjalo en false. */
 const MODO_PRUEBA = false;
+const JUEGO_HABILITADO = false;
 
 document.getElementById("todayText").textContent = MODO_PRUEBA ? "MODO PRUEBA" : NOMBRES_DIA[HOY];
 
@@ -121,7 +122,7 @@ const esDiaDeJuego = HOY >= 1 && HOY <= 5;
 document.getElementById("weekendNote").style.display = (!MODO_PRUEBA && !esDiaDeJuego) ? "block" : "none";
 
 document.getElementById("games").innerHTML = JUEGOS.map(j=>{
-  const disponible = MODO_PRUEBA || j.dia === HOY;
+ const disponible = MODO_PRUEBA || (j.dia === HOY && JUEGO_HABILITADO);
   return `
     <section class="game ${disponible ? "active" : "locked"}">
       <div class="game-head">
