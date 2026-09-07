@@ -366,7 +366,7 @@
 
   function paintPhaseSelector(){
     const el=document.getElementById('phaseSelector');
-    el.innerHTML=[1,2,3].map(n=>{
+    el.innerHTML=[1,3].map(n=>{
       const on=n===FASE_ACTIVA;
       return `<div class="phase-card ${on?'active':'locked'}">
         <div class="lock">${on?'🔓':'🔒'}</div>
