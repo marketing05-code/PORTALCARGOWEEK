@@ -187,7 +187,7 @@ let cfg=null,Q=[],LIMIT=600000;
 let i=0, err=0, hits=0, startAt=0, tick=null, locked=false;
 let respuestas=[];
 const FECHA_JUEGO="2026-09-08", ZONA_HORARIA="America/Monterrey";
-const HORARIOS={1:{inicio:720,fin:735,texto:"9:00 p.m. – 9:15 p.m."}};
+const HORARIOS={1:{inicio:540,fin:550,texto:"9:00 a.m. – 9:10 a.m."}};
 function ahoraMty(){const p=new Intl.DateTimeFormat("en-CA",{timeZone:ZONA_HORARIA,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date()),o={};p.forEach(x=>{if(x.type!=="literal")o[x.type]=x.value});return{fecha:`${o.year}-${o.month}-${o.day}`,min:Number(o.hour)*60+Number(o.minute)}}
 function fasePorHorario(){
   const n=ahoraMty();
